@@ -1,0 +1,62 @@
+{
+  "lesson_id": "day_005",
+  "day": 5,
+  "topic": "Asking for Directions",
+  "location": "city",
+  "difficulty": "elementary",
+  "characters": [{ "id": "stranger", "name": "Officer Rao", "role": "police" }],
+  "intro": "You are lost in the city. Politely ask someone how to reach the library.",
+  "vocabulary": ["excuse me", "where is", "turn left", "straight", "near"],
+  "conversation": [
+    { "speaker": "stranger", "text": "Hello there. You look a little lost. Can I help you?" },
+    {
+      "speaker": "student",
+      "prompt": "Politely ask where the library is.",
+      "expected": ["Excuse me, where is the library?", "Yes, where is the library please?", "Can you tell me the way to the library?"],
+      "keywords": [["where", "way"], "library"],
+      "expects": "question",
+      "hint": "Try: \"Excuse me, where is the library?\"",
+      "points": 20
+    },
+    { "speaker": "stranger", "text": "Go straight down this road and turn left at the traffic light." },
+    {
+      "speaker": "student",
+      "prompt": "Repeat the directions to check you understood.",
+      "expected": ["Go straight and turn left.", "Straight and then left at the light.", "I go straight, then I turn left."],
+      "keywords": [["straight"], ["left"]],
+      "expects": "state",
+      "hint": "Try: \"Go straight, then turn left.\"",
+      "points": 20
+    },
+    { "speaker": "stranger", "text": "That is correct. It is next to the post office." },
+    {
+      "speaker": "student",
+      "prompt": "Ask how far it is.",
+      "expected": ["How far is it?", "Is it far from here?", "How long will it take?"],
+      "keywords": [["far", "long", "how"]],
+      "expects": "question",
+      "hint": "Try: \"How far is it from here?\"",
+      "points": 20
+    },
+    { "speaker": "stranger", "text": "Only five minutes on foot. You cannot miss it." },
+    {
+      "speaker": "student",
+      "prompt": "Thank the officer for helping you.",
+      "expected": ["Thank you very much.", "Thank you for your help.", "Thanks a lot, sir."],
+      "keywords": ["thank"],
+      "expects": "closing",
+      "hint": "Try: \"Thank you very much for your help.\"",
+      "points": 20
+    },
+    { "speaker": "stranger", "text": "You are welcome. Stay safe!" },
+    {
+      "speaker": "student",
+      "prompt": "Say goodbye.",
+      "expected": ["Goodbye.", "Bye, have a good day.", "Goodbye, thank you."],
+      "keywords": [["bye", "goodbye", "day"]],
+      "expects": "closing",
+      "hint": "Try: \"Goodbye, have a good day!\"",
+      "points": 20
+    }
+  ]
+}

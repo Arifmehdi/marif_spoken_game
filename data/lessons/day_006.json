@@ -1,0 +1,152 @@
+{
+  "lesson_id": "day_006",
+  "day": 6,
+  "topic": "Talking About Family",
+  "location": "home",
+  "difficulty": "beginner",
+  "characters": [
+    {
+      "id": "mother",
+      "name": "Mummy",
+      "role": "mother"
+    }
+  ],
+  "intro": "Your cousin wants to know about your family. Tell her all about them.",
+  "vocabulary": [
+    "family",
+    "brother",
+    "sister",
+    "father",
+    "mother",
+    "grandparents"
+  ],
+  "conversation": [
+    {
+      "speaker": "mother",
+      "text": "How many people are there in your family?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say how many people are in your family.",
+      "expected": [
+        "There are four people in my family.",
+        "We are four people.",
+        "There are five in my family."
+      ],
+      "keywords": [
+        [
+          "four",
+          "five",
+          "three",
+          "six",
+          "two"
+        ],
+        [
+          "family"
+        ]
+      ],
+      "expects": "number",
+      "hint": "Try: \"There are four people in my family.\"",
+      "points": 20,
+      "slot": "number"
+    },
+    {
+      "speaker": "mother",
+      "text": "Lovely. Do you have any brothers or sisters?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Talk about your brothers or sisters.",
+      "expected": [
+        "I have one sister.",
+        "I have a brother and a sister.",
+        "Yes, I have two brothers.",
+        "No, I am the only child."
+      ],
+      "keywords": [
+        [
+          "brother",
+          "sister",
+          "no"
+        ]
+      ],
+      "expects": "yes_no",
+      "hint": "Try: \"I have one sister.\"",
+      "points": 20,
+      "slot": "sibling"
+    },
+    {
+      "speaker": "mother",
+      "text": "What does your father do?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say what your father's job is.",
+      "expected": [
+        "My father is a teacher.",
+        "He is a doctor.",
+        "My father works in an office."
+      ],
+      "keywords": [
+        [
+          "father",
+          "he"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"My father is a teacher.\"",
+      "points": 20,
+      "slot": "job"
+    },
+    {
+      "speaker": "mother",
+      "text": "And what about your mother?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say what your mother does.",
+      "expected": [
+        "My mother is a nurse.",
+        "She is a teacher.",
+        "My mother works at home."
+      ],
+      "keywords": [
+        [
+          "mother",
+          "mom",
+          "she"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"My mother is a nurse.\"",
+      "points": 20,
+      "slot": "job"
+    },
+    {
+      "speaker": "mother",
+      "text": "Your family sounds wonderful. Do you love them?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say that you love your family.",
+      "expected": [
+        "Yes, I love my family very much.",
+        "Yes, I love them.",
+        "Of course, I love my family."
+      ],
+      "keywords": [
+        [
+          "love",
+          "like"
+        ],
+        [
+          "family",
+          "them"
+        ]
+      ],
+      "expects": "yes_no",
+      "hint": "Try: \"Yes, I love my family very much.\"",
+      "points": 20
+    }
+  ]
+}

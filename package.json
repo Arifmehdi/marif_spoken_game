@@ -1,0 +1,11 @@
+{
+  "name": "spoken-english-adventure",
+  "version": "1.0.0",
+  "description": "Browser-based 3D spoken English learning game (Three.js)",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node tools/serve.mjs",
+    "test": "node tests/evaluator.test.mjs"
+  }
+}

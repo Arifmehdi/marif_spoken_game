@@ -1,0 +1,149 @@
+{
+  "lesson_id": "day_007",
+  "day": 7,
+  "topic": "Daily Routine",
+  "location": "home",
+  "difficulty": "elementary",
+  "characters": [
+    {
+      "id": "mother",
+      "name": "Mummy",
+      "role": "mother"
+    }
+  ],
+  "intro": "Tell your mother about your day, from morning until night.",
+  "vocabulary": [
+    "wake up",
+    "breakfast",
+    "homework",
+    "dinner",
+    "go to bed"
+  ],
+  "conversation": [
+    {
+      "speaker": "mother",
+      "text": "What time do you wake up in the morning?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say what time you wake up.",
+      "expected": [
+        "I wake up at six o'clock.",
+        "I wake up at seven in the morning.",
+        "I get up at six."
+      ],
+      "keywords": [
+        [
+          "wake",
+          "get",
+          "up"
+        ]
+      ],
+      "expects": "time",
+      "hint": "Try: \"I wake up at six o'clock.\"",
+      "points": 20,
+      "slot": "time"
+    },
+    {
+      "speaker": "mother",
+      "text": "Good habit! What do you do after that?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say what you do next.",
+      "expected": [
+        "I brush my teeth and take a bath.",
+        "I brush my teeth.",
+        "I wash my face and get ready."
+      ],
+      "keywords": [
+        [
+          "brush",
+          "bath",
+          "wash",
+          "ready"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I brush my teeth and take a bath.\"",
+      "points": 20,
+      "slot": "activity"
+    },
+    {
+      "speaker": "mother",
+      "text": "And what do you eat for breakfast?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say what you eat for breakfast.",
+      "expected": [
+        "I eat bread and eggs for breakfast.",
+        "I have milk and roti.",
+        "I eat rice for breakfast."
+      ],
+      "keywords": [
+        [
+          "eat",
+          "have",
+          "breakfast"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I eat bread and eggs for breakfast.\"",
+      "points": 20,
+      "slot": "food"
+    },
+    {
+      "speaker": "mother",
+      "text": "When do you do your homework?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say when you do your homework.",
+      "expected": [
+        "I do my homework in the evening.",
+        "I do my homework after school.",
+        "I finish my homework at five."
+      ],
+      "keywords": [
+        [
+          "homework"
+        ],
+        [
+          "evening",
+          "after",
+          "school",
+          "five",
+          "night"
+        ]
+      ],
+      "expects": "time",
+      "hint": "Try: \"I do my homework in the evening.\"",
+      "points": 20,
+      "slot": "time"
+    },
+    {
+      "speaker": "mother",
+      "text": "Very good. And what time do you go to bed?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say what time you sleep.",
+      "expected": [
+        "I go to bed at nine o'clock.",
+        "I sleep at ten.",
+        "I go to sleep at nine."
+      ],
+      "keywords": [
+        [
+          "bed",
+          "sleep"
+        ]
+      ],
+      "expects": "time",
+      "hint": "Try: \"I go to bed at nine o'clock.\"",
+      "points": 20,
+      "slot": "time"
+    }
+  ]
+}

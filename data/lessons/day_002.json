@@ -1,0 +1,137 @@
+{
+  "lesson_id": "day_002",
+  "day": 2,
+  "topic": "Meeting a New Friend",
+  "location": "park",
+  "difficulty": "beginner",
+  "characters": [
+    {
+      "id": "friend",
+      "name": "Ananya",
+      "role": "friend"
+    }
+  ],
+  "intro": "There is a new student in the park. Say hello and make a new friend.",
+  "vocabulary": [
+    "hello",
+    "nice to meet you",
+    "live",
+    "hobby",
+    "play"
+  ],
+  "conversation": [
+    {
+      "speaker": "friend",
+      "text": "Hi! I am Ananya. What is your name?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Introduce yourself.",
+      "expected": [
+        "Hello, my name is Rahul.",
+        "Hi, I am Rahul.",
+        "My name is Rahul."
+      ],
+      "keywords": [
+        [
+          "name",
+          "i"
+        ]
+      ],
+      "expects": "name",
+      "hint": "Try: \"Hi, my name is ______.\"",
+      "points": 20,
+      "slot": "name"
+    },
+    {
+      "speaker": "friend",
+      "text": "Nice to meet you! Where do you live?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say where you live.",
+      "expected": [
+        "I live in Delhi.",
+        "I live near the park.",
+        "I live in a small town."
+      ],
+      "keywords": [
+        "live"
+      ],
+      "expects": "place",
+      "hint": "Try: \"I live in ______.\"",
+      "points": 20,
+      "slot": "place"
+    },
+    {
+      "speaker": "friend",
+      "text": "That is close to me! What games do you like to play?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Tell your new friend which game you like.",
+      "expected": [
+        "I like to play cricket.",
+        "I like football.",
+        "I love playing cricket."
+      ],
+      "keywords": [
+        [
+          "like",
+          "love",
+          "play"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I like to play cricket.\"",
+      "points": 20,
+      "slot": "game"
+    },
+    {
+      "speaker": "friend",
+      "text": "Great! Would you like to play with me after school?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Accept the invitation politely.",
+      "expected": [
+        "Yes, I would love to.",
+        "Yes, that sounds fun.",
+        "Sure, I would like that."
+      ],
+      "keywords": [
+        [
+          "yes",
+          "sure",
+          "of course"
+        ]
+      ],
+      "expects": "yes_no",
+      "hint": "Try: \"Yes, I would love to!\"",
+      "points": 20
+    },
+    {
+      "speaker": "friend",
+      "text": "Awesome! See you later then."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say goodbye to your friend.",
+      "expected": [
+        "See you later.",
+        "Goodbye, see you.",
+        "Bye, see you tomorrow."
+      ],
+      "keywords": [
+        [
+          "bye",
+          "goodbye",
+          "see"
+        ]
+      ],
+      "expects": "closing",
+      "hint": "Try: \"See you later!\"",
+      "points": 20
+    }
+  ]
+}

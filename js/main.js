@@ -1,0 +1,28 @@
+import { Game } from "./core/Game.js";
+import { Screens } from "./ui/Screens.js";
+
+const canvas = document.querySelector("#scene");
+const screenRoot = document.querySelector("#screen-root");
+
+function hideLoader() {
+  const loader = document.querySelector("#boot");
+  if (loader) loader.classList.add("hidden");
+}
+
+const game = new Game(canvas, screenRoot);
+
+game.boot()
+  .then(hideLoader)
+  .catch((err) => {
+    hideLoader();
+    console.error(err);
+    const detail = /Failed to fetch|NetworkError|Could not load/i.test(err.message)
+      ? "The lesson files could not be read.\n\nOpen the game through a web server " +
+        "(for example http://localhost/freelancer/spoken_game/) rather than by " +
+        "double-clicking index.html - browsers block fetch() on file:// URLs.\n\n" + err.message
+      : err.stack || err.message;
+    new Screens(screenRoot).error("The game could not start.", detail);
+  });
+
+// Handy while the client is reviewing: window.game.progress.reset() etc.
+window.game = game;

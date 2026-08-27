@@ -1,0 +1,145 @@
+{
+  "lesson_id": "day_003",
+  "day": 3,
+  "topic": "At a Shop",
+  "location": "shop",
+  "difficulty": "beginner",
+  "characters": [
+    {
+      "id": "shopkeeper",
+      "name": "Mr. Verma",
+      "role": "shopkeeper"
+    }
+  ],
+  "intro": "You need to buy a notebook and a pen. Talk to the shopkeeper.",
+  "vocabulary": [
+    "how much",
+    "price",
+    "rupees",
+    "want to buy",
+    "here you are"
+  ],
+  "conversation": [
+    {
+      "speaker": "shopkeeper",
+      "text": "Welcome to my shop! What would you like to buy?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say what you want to buy.",
+      "expected": [
+        "I want to buy a notebook.",
+        "I would like a notebook and a pen.",
+        "I want a pen."
+      ],
+      "keywords": [
+        [
+          "want",
+          "would",
+          "need",
+          "buy"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I want to buy a notebook.\"",
+      "points": 20,
+      "slot": "item"
+    },
+    {
+      "speaker": "shopkeeper",
+      "text": "Of course. How many do you need?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say how many you need.",
+      "expected": [
+        "I need two notebooks.",
+        "Two, please.",
+        "I need one notebook."
+      ],
+      "keywords": [
+        [
+          "one",
+          "two",
+          "three",
+          "four",
+          "five",
+          "many"
+        ]
+      ],
+      "expects": "number",
+      "hint": "Try: \"I need two, please.\"",
+      "points": 20,
+      "slot": "number"
+    },
+    {
+      "speaker": "shopkeeper",
+      "text": "Here you are. That will be sixty rupees."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Ask about the price or confirm it.",
+      "expected": [
+        "How much is it?",
+        "Sixty rupees, here you are.",
+        "That is fine, here is the money."
+      ],
+      "keywords": [
+        [
+          "much",
+          "rupees",
+          "money",
+          "here"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"Here you are, sixty rupees.\"",
+      "points": 20
+    },
+    {
+      "speaker": "shopkeeper",
+      "text": "Thank you. Do you need anything else?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say that you do not need anything else.",
+      "expected": [
+        "No, thank you.",
+        "No, that is all.",
+        "That is all, thank you."
+      ],
+      "keywords": [
+        [
+          "no",
+          "all"
+        ]
+      ],
+      "expects": "yes_no",
+      "hint": "Try: \"No, thank you. That is all.\"",
+      "points": 20
+    },
+    {
+      "speaker": "shopkeeper",
+      "text": "Please come again soon!"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Thank the shopkeeper and leave.",
+      "expected": [
+        "Thank you, goodbye.",
+        "Thank you sir, bye.",
+        "Goodbye, thank you."
+      ],
+      "keywords": [
+        [
+          "thank",
+          "bye",
+          "goodbye"
+        ]
+      ],
+      "expects": "closing",
+      "hint": "Try: \"Thank you, goodbye!\"",
+      "points": 20
+    }
+  ]
+}

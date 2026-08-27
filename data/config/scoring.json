@@ -1,0 +1,314 @@
+{
+  "_comment": "Tune the whole evaluation engine here. No code changes required.",
+  "weights": {
+    "keywords": 0.3,
+    "similarity": 0.35,
+    "grammar": 0.2,
+    "relevance": 0.15
+  },
+  "penalties": {
+    "missingExpectedTokens": 0.14,
+    "forbiddenWord": 0.2,
+    "tooShort": 0.15,
+    "extraWord": 0.07,
+    "maxExtraWordPenalty": 0.18
+  },
+  "bands": [
+    {
+      "min": 90,
+      "label": "Excellent!",
+      "emoji": "🌟",
+      "stars": 5,
+      "points": 20,
+      "class": "band-excellent"
+    },
+    {
+      "min": 75,
+      "label": "Good!",
+      "emoji": "👍",
+      "stars": 4,
+      "points": 15,
+      "class": "band-good"
+    },
+    {
+      "min": 50,
+      "label": "Not bad!",
+      "emoji": "🙂",
+      "stars": 3,
+      "points": 10,
+      "class": "band-ok"
+    },
+    {
+      "min": 25,
+      "label": "Try again",
+      "emoji": "💪",
+      "stars": 2,
+      "points": 5,
+      "class": "band-tryagain"
+    },
+    {
+      "min": 0,
+      "label": "Keep going",
+      "emoji": "🎯",
+      "stars": 1,
+      "points": 0,
+      "class": "band-poor"
+    }
+  ],
+  "rewards": {
+    "coinsPerStar": 6,
+    "perfectLessonBonusXp": 25,
+    "streakBonusXpPerDay": 5,
+    "maxStreakBonusXp": 50
+  },
+  "xpPerLevel": 250,
+  "synonymGroups": [
+    [
+      "fine",
+      "good",
+      "great",
+      "well",
+      "okay",
+      "ok",
+      "alright",
+      "nice",
+      "happy"
+    ],
+    [
+      "hello",
+      "hi",
+      "hey",
+      "greetings"
+    ],
+    [
+      "bye",
+      "goodbye",
+      "farewell"
+    ],
+    [
+      "thanks",
+      "thank"
+    ],
+    [
+      "yes",
+      "yeah",
+      "yep",
+      "sure",
+      "certainly",
+      "definitely"
+    ],
+    [
+      "no",
+      "nope",
+      "not"
+    ],
+    [
+      "buy",
+      "purchase",
+      "get",
+      "take"
+    ],
+    [
+      "like",
+      "love",
+      "enjoy",
+      "prefer"
+    ],
+    [
+      "big",
+      "large",
+      "huge"
+    ],
+    [
+      "small",
+      "little",
+      "tiny"
+    ],
+    [
+      "shop",
+      "store",
+      "market"
+    ],
+    [
+      "doctor",
+      "physician"
+    ],
+    [
+      "mother",
+      "mom",
+      "mum",
+      "mummy"
+    ],
+    [
+      "father",
+      "dad",
+      "daddy",
+      "papa"
+    ],
+    [
+      "sick",
+      "ill",
+      "unwell"
+    ],
+    [
+      "help",
+      "assist"
+    ],
+    [
+      "street",
+      "road",
+      "lane"
+    ],
+    [
+      "near",
+      "close",
+      "beside",
+      "next"
+    ],
+    [
+      "want",
+      "would",
+      "need"
+    ],
+    [
+      "home",
+      "house"
+    ],
+    [
+      "study",
+      "studies",
+      "studying",
+      "learn"
+    ],
+    [
+      "play",
+      "playing"
+    ],
+    [
+      "evening",
+      "night"
+    ]
+  ],
+  "politenessWords": [
+    "thank",
+    "thanks",
+    "please",
+    "sir",
+    "madam",
+    "maam",
+    "kindly",
+    "very",
+    "much",
+    "welcome"
+  ],
+  "stopWords": [
+    "a",
+    "an",
+    "the",
+    "is",
+    "am",
+    "are",
+    "was",
+    "were",
+    "be",
+    "been",
+    "to",
+    "of",
+    "in",
+    "on",
+    "at",
+    "it",
+    "and",
+    "or",
+    "so",
+    "do",
+    "does",
+    "did",
+    "you",
+    "your",
+    "i",
+    "my",
+    "me",
+    "we",
+    "our",
+    "he",
+    "she",
+    "they",
+    "this",
+    "that",
+    "for",
+    "with",
+    "as",
+    "but",
+    "doing",
+    "going",
+    "feeling",
+    "really",
+    "just",
+    "some",
+    "quite",
+    "lot",
+    "bit",
+    "also",
+    "then",
+    "now"
+  ],
+  "verbHints": [
+    "is",
+    "am",
+    "are",
+    "was",
+    "were",
+    "have",
+    "has",
+    "had",
+    "do",
+    "does",
+    "did",
+    "can",
+    "could",
+    "will",
+    "would",
+    "go",
+    "goes",
+    "went",
+    "like",
+    "likes",
+    "want",
+    "wants",
+    "need",
+    "study",
+    "live",
+    "lives",
+    "play",
+    "eat",
+    "eats",
+    "get",
+    "take",
+    "come",
+    "feel",
+    "feeling",
+    "doing",
+    "going",
+    "meet"
+  ],
+  "subjectHints": [
+    "i",
+    "we",
+    "you",
+    "he",
+    "she",
+    "it",
+    "they",
+    "my",
+    "our",
+    "his",
+    "her",
+    "their",
+    "there",
+    "this",
+    "that",
+    "these",
+    "those"
+  ]
+}

@@ -1,0 +1,144 @@
+{
+  "lesson_id": "day_004",
+  "day": 4,
+  "topic": "At a Restaurant",
+  "location": "restaurant",
+  "difficulty": "elementary",
+  "characters": [
+    {
+      "id": "waiter",
+      "name": "Sanjay",
+      "role": "waiter"
+    }
+  ],
+  "intro": "You are hungry! Order your favourite food at the restaurant.",
+  "vocabulary": [
+    "menu",
+    "order",
+    "table",
+    "delicious",
+    "bill"
+  ],
+  "conversation": [
+    {
+      "speaker": "waiter",
+      "text": "Good evening! A table for how many people?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say how many people are with you.",
+      "expected": [
+        "A table for two, please.",
+        "For two people, please.",
+        "Just one, please."
+      ],
+      "keywords": [
+        [
+          "one",
+          "two",
+          "three",
+          "four",
+          "table"
+        ]
+      ],
+      "expects": "number",
+      "hint": "Try: \"A table for two, please.\"",
+      "points": 20,
+      "slot": "number"
+    },
+    {
+      "speaker": "waiter",
+      "text": "Please sit here. What would you like to order?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Order some food.",
+      "expected": [
+        "I would like rice and dal, please.",
+        "I want one plate of rice.",
+        "Can I have a sandwich, please?"
+      ],
+      "keywords": [
+        [
+          "want",
+          "would",
+          "like",
+          "have"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I would like rice, please.\"",
+      "points": 20,
+      "slot": "food"
+    },
+    {
+      "speaker": "waiter",
+      "text": "Excellent choice. Would you like something to drink?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Order a drink, or politely refuse.",
+      "expected": [
+        "Yes, a glass of water, please.",
+        "I would like some juice.",
+        "No, thank you."
+      ],
+      "keywords": [
+        [
+          "water",
+          "juice",
+          "milk",
+          "tea",
+          "no"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"Yes, a glass of water, please.\"",
+      "points": 20,
+      "slot": "drink"
+    },
+    {
+      "speaker": "waiter",
+      "text": "Here is your food. I hope you enjoy it!"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say that the food is delicious.",
+      "expected": [
+        "Thank you, it is delicious.",
+        "The food is very tasty.",
+        "It is very good, thank you."
+      ],
+      "keywords": [
+        [
+          "delicious",
+          "tasty",
+          "good",
+          "nice"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"Thank you, it is delicious!\"",
+      "points": 20
+    },
+    {
+      "speaker": "waiter",
+      "text": "I am glad you liked it. Anything else?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Ask for the bill.",
+      "expected": [
+        "Can I have the bill, please?",
+        "The bill, please.",
+        "May I have the bill?"
+      ],
+      "keywords": [
+        "bill"
+      ],
+      "expects": "request",
+      "hint": "Try: \"Can I have the bill, please?\"",
+      "points": 20
+    }
+  ]
+}

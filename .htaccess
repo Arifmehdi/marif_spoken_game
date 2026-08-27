@@ -1,0 +1,23 @@
+# Development: never serve stale JS/JSON. Browsers cache ES modules very
+# aggressively, which makes edits look like they "did not apply".
+# Remove or relax this block when deploying to production.
+<IfModule mod_headers.c>
+  <FilesMatch "\.(js|mjs|json|css|html)$">
+    Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+    Header set Pragma "no-cache"
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_expires.c>
+  ExpiresActive Off
+</IfModule>
+
+FileETag None
+
+# Correct MIME types for ES modules and 3D assets.
+<IfModule mod_mime.c>
+  AddType text/javascript .js .mjs
+  AddType application/json .json
+  AddType model/gltf-binary .glb
+  AddType model/gltf+json .gltf
+</IfModule>

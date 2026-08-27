@@ -1,0 +1,152 @@
+{
+  "lesson_id": "day_008",
+  "day": 8,
+  "topic": "At the Doctor",
+  "location": "hospital",
+  "difficulty": "intermediate",
+  "characters": [
+    {
+      "id": "doctor",
+      "name": "Dr. Iyer",
+      "role": "doctor"
+    }
+  ],
+  "intro": "You are not feeling well. Tell the doctor what is wrong.",
+  "vocabulary": [
+    "fever",
+    "headache",
+    "medicine",
+    "rest",
+    "feel better"
+  ],
+  "conversation": [
+    {
+      "speaker": "doctor",
+      "text": "Hello. Please sit down. What is the problem?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Tell the doctor you are not feeling well.",
+      "expected": [
+        "I am not feeling well.",
+        "I have a headache.",
+        "I am feeling sick."
+      ],
+      "keywords": [
+        [
+          "not",
+          "sick",
+          "ill",
+          "headache",
+          "pain",
+          "fever"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I am not feeling well.\"",
+      "points": 20,
+      "slot": "symptom"
+    },
+    {
+      "speaker": "doctor",
+      "text": "I see. Since when have you had this problem?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say how long you have felt unwell.",
+      "expected": [
+        "Since yesterday.",
+        "For two days.",
+        "Since this morning."
+      ],
+      "keywords": [
+        [
+          "since",
+          "for",
+          "yesterday",
+          "days",
+          "morning",
+          "week"
+        ]
+      ],
+      "expects": "time",
+      "hint": "Try: \"Since yesterday, doctor.\"",
+      "points": 20,
+      "slot": "duration"
+    },
+    {
+      "speaker": "doctor",
+      "text": "Do you also have a fever or a cough?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Answer the doctor's question.",
+      "expected": [
+        "Yes, I have a small fever.",
+        "No, I do not have a fever.",
+        "Yes, I have a cough."
+      ],
+      "keywords": [
+        [
+          "yes",
+          "no"
+        ],
+        [
+          "fever",
+          "cough"
+        ]
+      ],
+      "expects": "yes_no",
+      "hint": "Try: \"Yes, I have a small fever.\"",
+      "points": 20
+    },
+    {
+      "speaker": "doctor",
+      "text": "Take this medicine twice a day and rest well."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Ask a question about the medicine.",
+      "expected": [
+        "How many days should I take it?",
+        "Should I take it after food?",
+        "When should I take the medicine?"
+      ],
+      "keywords": [
+        [
+          "how",
+          "should",
+          "when"
+        ],
+        [
+          "take",
+          "medicine",
+          "food",
+          "days"
+        ]
+      ],
+      "expects": "question",
+      "hint": "Try: \"Should I take it after food?\"",
+      "points": 20
+    },
+    {
+      "speaker": "doctor",
+      "text": "After food, for three days. You will feel better soon."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Thank the doctor.",
+      "expected": [
+        "Thank you, doctor.",
+        "Thank you very much.",
+        "Thank you doctor, goodbye."
+      ],
+      "keywords": [
+        "thank"
+      ],
+      "expects": "closing",
+      "hint": "Try: \"Thank you, doctor.\"",
+      "points": 20
+    }
+  ]
+}

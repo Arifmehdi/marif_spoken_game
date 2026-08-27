@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<meta name="theme-color" content="#12203a" />
+<title>Spoken English Adventure</title>
+<link rel="stylesheet" href="css/style.css" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🎤</text></svg>" />
+<script type="importmap">
+{
+  "imports": {
+    "three": "./js/vendor/three.module.js"
+  }
+}
+</script>
+</head>
+<body>
+
+<div id="app">
+  <canvas id="scene"></canvas>
+
+  <!-- speech bubbles, positioned over character heads every frame -->
+  <div id="bubbles"></div>
+
+  <!-- ------------------------------------------------------------- HUD -->
+  <div id="hud">
+    <div class="hud-player">
+      <div class="avatar">🧑‍🎓</div>
+      <div class="player-meta">
+        <div class="player-line">
+          <span id="hud-name">Student</span>
+          <span id="hud-level" class="level-pill">Level 1</span>
+        </div>
+        <div class="xp-bar"><div id="hud-xp-fill" class="xp-fill"></div></div>
+        <div id="hud-xp-text" class="xp-text">0 / 250 XP</div>
+      </div>
+    </div>
+
+    <div class="hud-stats">
+      <div class="stat-pill"><span class="ico">🪙</span><span id="hud-coins">0</span></div>
+      <div class="stat-pill"><span class="ico">🔥</span><span id="hud-streak">0</span></div>
+    </div>
+
+    <div class="hud-rail">
+      <button class="rail-btn" id="btn-lesson"><span>📘</span><small>Lesson</small></button>
+      <button class="rail-btn" id="btn-map"><span>🗺️</span><small>Map</small></button>
+      <button class="rail-btn" id="btn-progress"><span>🏆</span><small>Progress</small></button>
+      <button class="rail-btn" id="btn-settings"><span>⚙️</span><small>Settings</small></button>
+    </div>
+
+    <div id="quest-card" class="hidden">
+      <div class="quest-head">Quest <span id="quest-count"></span></div>
+      <div id="quest-text"></div>
+    </div>
+  </div>
+
+  <!-- -------------------------------------------------------- movement -->
+  <div id="controls">
+    <div id="joystick"><div id="knob"></div></div>
+    <div class="action-cluster">
+      <button id="btn-interact" class="round-btn primary hidden">
+        <span class="btn-icon">💬</span><span class="btn-label">Talk</span>
+      </button>
+      <button id="btn-run" class="round-btn">
+        <span class="btn-icon">🏃</span><span class="btn-label">Run</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ---------------------------------------------------- conversation -->
+  <div id="convo" class="hidden">
+    <button id="btn-leave" class="convo-leave" title="Leave conversation">✕</button>
+    <div id="convo-step" class="convo-step"></div>
+    <div id="convo-prompt" class="convo-prompt"></div>
+
+    <div class="answer-area">
+      <button id="btn-mic" class="mic-btn">
+        <span class="mic-glyph">🎤</span>
+        <span id="mic-wave" class="mic-wave"><i></i><i></i><i></i><i></i><i></i></span>
+      </button>
+      <div id="mic-label" class="mic-label">Tap to Speak</div>
+
+      <div class="type-row">
+        <input id="answer-input" type="text" autocomplete="off" autocapitalize="sentences"
+               placeholder="…or type your answer here" />
+        <button id="btn-send" class="btn btn-primary">Send</button>
+      </div>
+
+      <button id="btn-hint" class="hint-btn hidden">💡 Hint</button>
+      <div id="hint-text" class="hint-text hidden"></div>
+    </div>
+  </div>
+
+  <div id="feedback" class="hidden"></div>
+  <div id="toast"></div>
+  <div id="screen-root" class="hidden"></div>
+
+  <div id="boot">
+    <div class="boot-inner">
+      <div class="boot-spin"></div>
+      <p>Loading your lesson…</p>
+    </div>
+  </div>
+</div>
+
+<noscript>
+  <p style="color:#fff;padding:2rem;font-family:sans-serif">
+    This game needs JavaScript enabled.
+  </p>
+</noscript>
+
+<!-- file:// guard.
+     Browsers treat file:// as a unique origin, so BOTH the module below and the
+     fetch() calls inside it are blocked by CORS before any of our code runs.
+     This plain (non-module) script does still run, so it explains the problem
+     instead of leaving the player staring at the loading spinner. -->
+<script>
+(function () {
+  if (location.protocol !== "file:") return;
+
+  // Turn D:/laragon/laragon/www/freelancer/spoken_game/ into the localhost URL.
+  var url = "http://localhost/";
+  var match = location.pathname.match(/\/www\/(.*)$/i);
+  if (match) url = "http://localhost/" + match[1].replace(/index\.html$/i, "");
+
+  var boot = document.getElementById("boot");
+  if (!boot) return;
+  boot.classList.remove("hidden");
+  boot.innerHTML =
+    '<div class="boot-inner boot-error">' +
+      '<div class="boot-error-icon">\u26A0\uFE0F</div>' +
+      '<h1>Open this through a web server</h1>' +
+      '<p>The game was opened directly from your hard drive, so the browser ' +
+        'blocked the lesson files for security reasons. This is normal - it is ' +
+        'not a problem with the game.</p>' +
+      '<p class="boot-do">Start Laragon, then open:</p>' +
+      '<a class="boot-url" href="' + url + '">' + url + '</a>' +
+      '<p class="boot-alt">No Laragon? Run <code>node tools/serve.mjs</code> in the ' +
+        'project folder and open <b>http://localhost:5173/</b></p>' +
+    '</div>';
+})();
+</script>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

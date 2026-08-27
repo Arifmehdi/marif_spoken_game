@@ -1,0 +1,140 @@
+{
+  "lesson_id": "day_001",
+  "day": 1,
+  "topic": "At School",
+  "location": "school",
+  "difficulty": "beginner",
+  "characters": [
+    {
+      "id": "teacher",
+      "name": "Mrs. Sharma",
+      "role": "teacher"
+    }
+  ],
+  "intro": "It is your first day back at school. Walk up to Mrs. Sharma and greet her politely.",
+  "vocabulary": [
+    "good morning",
+    "fine",
+    "thank you",
+    "name",
+    "class",
+    "favourite subject"
+  ],
+  "conversation": [
+    {
+      "speaker": "teacher",
+      "text": "Good morning! How are you today?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Greet your teacher and say how you feel.",
+      "expected": [
+        "I am fine, thank you.",
+        "I am good, thank you.",
+        "I am fine.",
+        "Good morning, I am fine."
+      ],
+      "keywords": [
+        [
+          "fine",
+          "good",
+          "well"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I am fine, thank you.\"",
+      "points": 20
+    },
+    {
+      "speaker": "teacher",
+      "text": "That is wonderful. What is your name?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Tell the teacher your name.",
+      "expected": [
+        "My name is Rahul.",
+        "My name is Arjun.",
+        "I am Rahul.",
+        "My name is Priya."
+      ],
+      "keywords": [
+        "name"
+      ],
+      "expects": "name",
+      "hint": "Try: \"My name is ______.\"",
+      "points": 20,
+      "slot": "name"
+    },
+    {
+      "speaker": "teacher",
+      "text": "Nice to meet you. Which class are you in?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say which class you study in.",
+      "expected": [
+        "I am in class five.",
+        "I study in class five.",
+        "I am in class 5."
+      ],
+      "keywords": [
+        "class"
+      ],
+      "expects": "state",
+      "hint": "Try: \"I am in class five.\"",
+      "points": 20,
+      "slot": "class"
+    },
+    {
+      "speaker": "teacher",
+      "text": "Good. What is your favourite subject?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Tell the teacher the subject you like most.",
+      "expected": [
+        "My favourite subject is English.",
+        "I like English.",
+        "My favourite subject is science.",
+        "I like mathematics."
+      ],
+      "keywords": [
+        [
+          "like",
+          "favourite",
+          "favorite",
+          "love"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"My favourite subject is English.\"",
+      "points": 20,
+      "slot": "subject"
+    },
+    {
+      "speaker": "teacher",
+      "text": "Excellent! Have a great day at school."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Thank your teacher and say goodbye.",
+      "expected": [
+        "Thank you, goodbye.",
+        "Thank you ma'am.",
+        "Thank you, see you tomorrow.",
+        "Goodbye ma'am."
+      ],
+      "keywords": [
+        [
+          "thank",
+          "goodbye",
+          "bye"
+        ]
+      ],
+      "expects": "closing",
+      "hint": "Try: \"Thank you, goodbye!\"",
+      "points": 20
+    }
+  ]
+}
