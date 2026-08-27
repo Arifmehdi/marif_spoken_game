@@ -267,7 +267,11 @@ html, body {
 
 /* --------------------------------------------------------------- screens */
 
-#screen-root { position: absolute; inset: 0; z-index: 40; opacity: 0; transition: opacity .22s ease; }
+/* Layer order (highest last): world 5-25, menu shell 45, popups 55, toasts 65,
+   boot 75. Popups MUST sit above the menu shell - Settings is opened from the
+   menu, and the menu is a full-screen overlay that would otherwise swallow
+   every click meant for the popup underneath it. */
+#screen-root { position: absolute; inset: 0; z-index: 55; opacity: 0; transition: opacity .22s ease; }
 #screen-root.is-in { opacity: 1; }
 .screen-backdrop {
   position: absolute; inset: 0; background: rgba(10, 18, 34, .72);
@@ -366,7 +370,7 @@ html, body {
 
 /* ----------------------------------------------------------------- toast */
 
-#toast { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); z-index: 50; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; }
+#toast { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); z-index: 65; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; }
 .toast-item {
   background: rgba(18,32,58,.94); color: #fff; padding: 11px 20px; border-radius: 999px;
   font-weight: 700; font-size: 14px; box-shadow: var(--shadow);
@@ -378,7 +382,7 @@ html, body {
 
 /* ------------------------------------------------------------------ boot */
 
-#boot { position: absolute; inset: 0; background: #12203a; display: grid; place-items: center; z-index: 60; transition: opacity .4s ease; }
+#boot { position: absolute; inset: 0; background: #12203a; display: grid; place-items: center; z-index: 75; transition: opacity .4s ease; }
 #boot.hidden { opacity: 0; pointer-events: none; display: grid !important; }
 .boot-inner { text-align: center; color: #cbd5e1; font-weight: 700; }
 .boot-spin { width: 46px; height: 46px; margin: 0 auto 14px; border: 5px solid rgba(255,255,255,.18); border-top-color: var(--brand); border-radius: 50%; animation: spin .9s linear infinite; }

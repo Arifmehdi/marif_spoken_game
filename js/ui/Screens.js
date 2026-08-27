@@ -19,18 +19,72 @@ export class Screens {
     this.onClose = null;
   }
 
+  /**
+   * A dismissable popup closes three ways: its own Done/Close button, clicking
+   * the dark area outside it, or the Escape key. There is deliberately no X in
+   * the corner - every popup carries an explicit button instead.
+   *
+   * Screens opened with { dismissable: false } (results, errors) get none of
+   * these - the player has to make a choice.
+   */
   show(html, { dismissable = true } = {}) {
     this.root.innerHTML = '<div class="screen-backdrop"><div class="screen-card">' + html + "</div></div>";
     this.root.classList.remove("hidden");
     requestAnimationFrame(() => this.root.classList.add("is-in"));
+
     if (dismissable) {
       const back = this.root.querySelector(".screen-backdrop");
       back.addEventListener("click", (e) => { if (e.target === back) this.hide(); });
+      this.bindEscape();
     }
     return this.root.querySelector(".screen-card");
   }
 
+  bindEscape(fn) {
+    this.unbindEscape();
+    this.escHandler = (e) => {
+      if (e.key !== "Escape") return;
+      e.preventDefault();
+      // Capture phase + stopPropagation so the world's Escape binding (which
+      // would abandon a conversation) never also fires.
+      e.stopPropagation();
+      if (fn) fn(); else this.hide();
+    };
+    window.addEventListener("keydown", this.escHandler, true);
+  }
+
+  /**
+   * In-game confirmation, replacing the browser's native confirm(). Native
+   * dialogs are blocked in some embedded contexts and look nothing like the
+   * game. Not dismissable by clicking away - the player must choose - but
+   * Escape maps to the safe option.
+   */
+  confirm(message, { title = "Are you sure?", yes = "Yes", no = "Cancel", danger = true, onYes, onNo } = {}) {
+    const card = this.show(
+      '<h2 class="screen-title">' + esc(title) + "</h2>" +
+      '<p class="screen-sub confirm-msg">' + esc(message) + "</p>" +
+      '<div class="screen-actions">' +
+        '<button class="btn btn-ghost" id="cf-no">' + esc(no) + "</button>" +
+        '<button class="btn ' + (danger ? "btn-danger-solid" : "btn-primary") + '" id="cf-yes">' + esc(yes) + "</button>" +
+      "</div>",
+      { dismissable: false });
+
+    const cancel = () => { this.hide(); if (onNo) onNo(); };
+    card.querySelector("#cf-no").addEventListener("click", cancel);
+    card.querySelector("#cf-yes").addEventListener("click", () => { this.hide(); if (onYes) onYes(); });
+    card.querySelector("#cf-no").focus();
+    this.bindEscape(cancel);
+    return card;
+  }
+
+  unbindEscape() {
+    if (!this.escHandler) return;
+    window.removeEventListener("keydown", this.escHandler, true);
+    this.escHandler = null;
+  }
+
   hide() {
+    this.unbindEscape();
     this.root.classList.remove("is-in");
     this.root.classList.add("hidden");
     this.root.innerHTML = "";
@@ -248,10 +302,17 @@ export class Screens {
     card.querySelector("#set-lang").addEventListener("change", (e) => onChange("lang", e.target.value));
     card.querySelector("#set-close").addEventListener("click", () => this.hide());
     card.querySelector("#set-reset").addEventListener("click", () => {
-      if (confirm("Erase all XP, coins and lesson history? This cannot be undone.")) {
-        onReset();
-        this.hide();
-      }
+      this.confirm(
+        "This erases all XP, coins, stars, streak and lesson history. " +
+        "You will start again from Day 1. This cannot be undone.",
+        {
+          title: "Reset your progress?",
+          yes: "Yes, reset everything",
+          no: "Keep my progress",
+          onYes: () => onReset(),
+          // Cancelling returns to Settings rather than dumping the player out.
+          onNo: () => this.settings(progress, speechSupported, { onChange, onReset })
+        });
     });
   }
 

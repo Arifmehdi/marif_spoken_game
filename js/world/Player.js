@@ -13,12 +13,30 @@ const RUN = 6.0;
 const RADIUS = 0.32;
 
 export class Player {
-  constructor() {
-    this.character = new Character("student");
+  constructor(style) {
+    this.character = new Character("student", style ? { style } : undefined);
     this.group = this.character.group;
     this.velocity = new THREE.Vector3();
     this.facing = 0;
     this.frozen = false;
+  }
+
+  /**
+   * Rebuild the student in the colours of the character the player chose in the
+   * menu. Cheap enough to just recreate rather than repaint every material.
+   */
+  setAppearance(style) {
+    const parent = this.group.parent;
+    const pos = this.group.position.clone();
+    const rot = this.group.rotation.y;
+    if (parent) parent.remove(this.group);
+    this.character.dispose();
+
+    this.character = new Character("student", { style });
+    this.group = this.character.group;
+    this.group.position.copy(pos);
+    this.group.rotation.y = rot;
+    if (parent) parent.add(this.group);
   }
 
   placeAt(spawn) {

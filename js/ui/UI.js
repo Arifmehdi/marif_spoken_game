@@ -92,6 +92,19 @@ export class UI {
     this.el.controls.classList.toggle("hidden", !on);
   }
 
+  /** Hide the whole in-world interface while the title menu is showing. */
+  setWorldUiVisible(on) {
+    this.el.hud.classList.toggle("hidden", !on);
+    this.el.controls.classList.toggle("hidden", !on);
+    if (!on) { this.el.convo.classList.add("hidden"); this.clearBubbles(); }
+  }
+
+  /** Swap the HUD avatar for the chosen character's portrait. */
+  setAvatar(src) {
+    const el = document.querySelector("#hud .avatar");
+    if (el) el.innerHTML = '<img src="' + src + '" alt="" />';
+  }
+
   /* ------------------------------------------------------------- bubbles */
 
   /** @param {"npc"|"student"|"thought"} kind */

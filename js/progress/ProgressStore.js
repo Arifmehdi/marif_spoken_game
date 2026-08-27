@@ -10,6 +10,7 @@ const EMPTY = () => ({
   version: 1,
   createdAt: new Date().toISOString(),
   playerName: "Student",
+  characterId: null,        // which of the four students the player picked
   lastPlayedDate: null,
   streak: 0,
   bestStreak: 0,

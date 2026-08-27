@@ -435,19 +435,129 @@ const BUILDERS = {
       colliders: c, bounds: { minX: -W / 2 + 1, maxX: W / 2 - 1, minZ: -D / 2 + 1, maxZ: D / 2 - 1 },
       sky: "#a8c8e8", fog: 70, label: "City"
     };
+  },
+
+  transport(group) {
+    const W = 22, D = 18;
+    floor(group, W, D, "#8e8e98");
+    const c = [];
+
+    const road = new THREE.Mesh(new THREE.PlaneGeometry(W, 8), M("#454550"));
+    road.rotation.x = -Math.PI / 2; road.position.set(0, 0.01, -3.5); road.receiveShadow = true;
+    group.add(road);
+    for (let x = -10; x < 10; x += 2.6) {
+      const dash = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 0.2), M("#f2f2f2"));
+      dash.rotation.x = -Math.PI / 2; dash.position.set(x, 0.02, -3.5);
+      group.add(dash);
+    }
+    // kerb
+    box(W, 0.22, 0.4, "#c8c8d0", 0, 0.11, 0.55, group, { castShadow: false });
+
+    // the bus
+    const bus = new THREE.Group();
+    bus.position.set(-3.5, 0, -4.2);
+    box(8.4, 2.3, 2.5, "#2f6fc4", 0, 1.5, 0, bus);
+    box(8.5, 0.5, 2.55, "#1f4f92", 0, 0.5, 0, bus);
+    for (let i = 0; i < 5; i++) box(1.2, 0.9, 0.06, "#bfe4ff", -3.2 + i * 1.6, 1.9, 1.28, bus, { castShadow: false });
+    box(1.0, 1.5, 0.06, "#bfe4ff", 4.22, 1.5, 0.7, bus, { castShadow: false });
+    [[-2.7, 1.25], [2.7, 1.25], [-2.7, -1.25], [2.7, -1.25]].forEach(([bx, bz]) => {
+      const wheel = cyl(0.55, 0.55, 0.35, "#22252b", bx, 0.55, bz, bus, 14);
+      wheel.rotation.z = Math.PI / 2;
+    });
+    group.add(bus);
+    c.push({ x: -3.5, z: -4.2, w: 8.6, d: 2.8 });
+
+    // shelter
+    box(5.0, 0.15, 2.0, "#5a6570", 4.0, 2.6, 2.4, group);
+    cyl(0.09, 0.09, 2.6, "#5a6570", 1.7, 1.3, 2.4, group, 8);
+    cyl(0.09, 0.09, 2.6, "#5a6570", 6.3, 1.3, 2.4, group, 8);
+    box(5.0, 1.4, 0.08, "#9fd4e0", 4.0, 1.5, 3.35, group, { castShadow: false });
+    box(3.4, 0.12, 0.45, "#a4703c", 4.0, 0.5, 3.0, group);
+    box(3.4, 0.5, 0.1, "#a4703c", 4.0, 0.75, 3.22, group);
+    c.push({ x: 4.0, z: 2.9, w: 5.0, d: 1.4 });
+
+    signBoard(group, "BUS STOP", 4.0, 3.1, 2.4, "#2f6fc4", 2.6);
+
+    [-8, 8].forEach((x) => {
+      cyl(0.1, 0.12, 3.4, "#3a3a44", x, 1.7, 5.6, group, 8);
+      const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.26, 10, 10), M("#ffe9a8"));
+      lamp.position.set(x, 3.5, 5.6);
+      group.add(lamp);
+      c.push({ x, z: 5.6, w: 0.4, d: 0.4 });
+    });
+    c.push(tree(group, -8.5, 2.5, 1.0));
+    c.push(tree(group, 9.0, 1.5, 0.9));
+
+    return {
+      spawn: { x: 2.0, z: 6.4 },
+      npcSpots: [{ x: 3.0, z: 1.6, rotY: Math.PI }],
+      colliders: c, bounds: { minX: -W / 2 + 1, maxX: W / 2 - 1, minZ: -1.2, maxZ: D / 2 - 1 },
+      sky: "#9ec9ec", fog: 60, label: "Bus Stop"
+    };
+  },
+
+  workplace(group) {
+    const W = 15, D = 13;
+    floor(group, W, D, "#6e7683");
+    const c = walls(group, W, D, "#dfe6ee");
+
+    // glass partition
+    for (let i = 0; i < 4; i++) {
+      const glass = new THREE.Mesh(new THREE.BoxGeometry(1.6, 2.4, 0.08),
+        new THREE.MeshLambertMaterial({ color: new THREE.Color("#bfe4ff"), transparent: true, opacity: 0.35 }));
+      glass.position.set(-5.6 + i * 1.7, 1.2, -1.0);
+      group.add(glass);
+    }
+    c.push({ x: -3.9, z: -1.0, w: 6.8, d: 0.4 });
+
+    // desk pods
+    [[2.4, -3.0], [5.4, -3.0], [2.4, 0.6], [5.4, 0.6]].forEach(([x, z]) => {
+      c.push(table(group, x, z, "#c9c9d2", 1.7, 0.85, 0.74));
+      const mon = box(0.9, 0.55, 0.06, "#22252b", x, 1.06, z - 0.22, group);
+      mon.rotation.x = -0.12;
+      box(0.24, 0.05, 0.16, "#5a5a66", x, 0.79, z - 0.22, group);
+      box(0.6, 0.03, 0.22, "#e2e8f0", x, 0.78, z + 0.14, group, { castShadow: false });
+      c.push(chair(group, x, z + 0.95, Math.PI, "#3a4657"));
+    });
+
+    // meeting table
+    c.push(table(group, -3.6, 2.6, "#a4703c", 2.8, 1.4, 0.74));
+    [[-4.6, 1.5, 0], [-2.6, 1.5, 0], [-4.6, 3.7, Math.PI], [-2.6, 3.7, Math.PI]]
+      .forEach(([x, z, r]) => c.push(chair(group, x, z, r, "#3a4657")));
+
+    // reception counter
+    box(3.2, 1.05, 0.8, "#4a5568", -5.0, 0.52, -4.6, group);
+    box(3.3, 0.1, 0.9, "#cbd5e1", -5.0, 1.08, -4.6, group);
+    c.push({ x: -5.0, z: -4.6, w: 3.4, d: 1.0 });
+
+    c.push(plant(group, W / 2 - 1.0, -4.4, 1.3));
+    c.push(plant(group, W / 2 - 1.0, 4.4, 1.2));
+    c.push(shelf(group, -W / 2 + 0.7, 0.5, Math.PI / 2, 2.4));
+
+    signBoard(group, "OFFICE", -5.0, 2.2, -D / 2 + 0.22, "#2f4858", 2.8);
+
+    return {
+      spawn: { x: 0.5, z: 4.8 },
+      npcSpots: [{ x: 0.2, z: 1.4, rotY: Math.PI }],
+      colliders: c, bounds: { minX: -W / 2 + 0.7, maxX: W / 2 - 0.7, minZ: -D / 2 + 0.7, maxZ: D / 2 - 0.7 },
+      sky: "#cfe0f0", fog: 45, label: "Workplace"
+    };
   }
 };
 
 export const LOCATION_IDS = Object.keys(BUILDERS);
 
+/** `art` points at the client's location artwork, used by the travel menu. */
 export const LOCATION_META = {
-  school:     { label: "School",     icon: "\u{1F3EB}", blurb: "Greetings, classroom talk" },
-  home:       { label: "Home",       icon: "\u{1F3E0}", blurb: "Family and daily routine" },
-  shop:       { label: "Shop",       icon: "\u{1F6D2}", blurb: "Buying and prices" },
-  restaurant: { label: "Restaurant", icon: "\u{1F37D}", blurb: "Ordering food" },
-  hospital:   { label: "Hospital",   icon: "\u{1F3E5}", blurb: "Health and help" },
-  park:       { label: "Park",       icon: "\u{1F333}", blurb: "Making friends" },
-  city:       { label: "City",       icon: "\u{1F3D9}", blurb: "Directions and travel" }
+  home:       { label: "Home",       icon: "\u{1F3E0}", blurb: "Family and daily routine", art: "locations/home_locations.png" },
+  school:     { label: "School",     icon: "\u{1F3EB}", blurb: "Greetings, classroom talk", art: "locations/school_location_2.png" },
+  shop:       { label: "Shop",       icon: "\u{1F6D2}", blurb: "Buying and prices",         art: "locations/shop_location_3.png" },
+  restaurant: { label: "Restaurant", icon: "\u{1F37D}", blurb: "Ordering food",             art: "locations/restaurant_location_4.png" },
+  hospital:   { label: "Hospital",   icon: "\u{1F3E5}", blurb: "Health and help",           art: "locations/hospital_location_5.png" },
+  park:       { label: "Park",       icon: "\u{1F333}", blurb: "Making friends",            art: "locations/park_location_6.png" },
+  transport:  { label: "Bus Stop",   icon: "\u{1F68C}", blurb: "Travel and tickets",        art: "locations/bus_transport_location_7.png" },
+  city:       { label: "City",       icon: "\u{1F3D9}", blurb: "Directions and travel",     art: "locations/city_location_8.png" },
+  workplace:  { label: "Workplace",  icon: "\u{1F3E2}", blurb: "Office and interviews",     art: "locations/workplace_location_9.png" }
 };
 
 export function buildLocation(id) {

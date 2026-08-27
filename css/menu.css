@@ -1,0 +1,211 @@
+/* ======================================================================
+   GAME SHELL - title menu, character select, location select.
+   Drawn over the live 3D scene.
+
+   The client's artwork PNGs have no alpha channel, so every image sits on
+   a light card - the same way the original artwork sheet presents them -
+   and the baked-in background reads as part of the card instead of as a
+   white box.
+   ====================================================================== */
+
+#menu-root { position: absolute; inset: 0; z-index: 45; opacity: 0; transition: opacity .28s ease; }
+#menu-root.is-in { opacity: 1; }
+#menu-root.hidden { display: none !important; }
+
+/* Icons now ship with a real alpha channel, so they need no blend tricks and
+   sit correctly on dark surfaces as well as light cards. */
+.ico-img { width: 22px; height: 22px; object-fit: contain; }
+
+/* ---------------------------------------------------------- main menu */
+
+.menu-shell { position: absolute; inset: 0; }
+
+.menu-left {
+  position: absolute; inset: 0 auto 0 0;
+  width: min(460px, 62vw);
+  padding: clamp(20px, 4vh, 54px) 0 30px clamp(20px, 4vw, 56px);
+  display: flex; flex-direction: column; gap: clamp(16px, 3vh, 40px);
+  background: linear-gradient(100deg, rgba(7,13,28,.96) 0%, rgba(7,13,28,.88) 58%, rgba(7,13,28,0) 100%);
+}
+
+.game-logo { display: flex; flex-direction: column; line-height: .92; }
+.logo-top {
+  font-size: clamp(19px, 3.1vw, 31px); font-weight: 800; letter-spacing: .13em;
+  color: #fff; text-shadow: 0 3px 0 rgba(0,0,0,.35);
+}
+.logo-bottom {
+  font-size: clamp(30px, 5.4vw, 55px); font-weight: 800; letter-spacing: .04em;
+  background: linear-gradient(180deg, #ffe27a 10%, #f59e0b 60%, #d97706 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 3px 0 rgba(0,0,0,.4));
+}
+
+.menu-list { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+.menu-item {
+  position: relative; border: 0; background: none; cursor: pointer;
+  font-family: var(--font); text-align: left; color: #cbd5e1;
+  padding: 7px 14px 7px 20px; border-radius: 10px;
+  display: flex; flex-direction: column;
+  transition: transform .16s cubic-bezier(.2,1.3,.5,1), color .16s ease;
+}
+.menu-item::before {
+  content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%) scaleY(0);
+  width: 5px; height: 74%; border-radius: 4px;
+  background: linear-gradient(180deg, #ffd24a, #f59e0b);
+  transition: transform .18s ease;
+}
+.menu-label { font-size: clamp(21px, 3.2vw, 33px); font-weight: 700; letter-spacing: .01em; line-height: 1.06; }
+.menu-sub { font-size: 12px; font-weight: 700; color: #64748b; letter-spacing: .04em; }
+.menu-item.is-big .menu-label {
+  font-size: clamp(34px, 5.6vw, 58px); font-weight: 800;
+  background: linear-gradient(180deg, #fff 30%, #9fd0ff 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.menu-item:hover, .menu-item:focus-visible { transform: translateX(14px); color: #fff; outline: none; }
+.menu-item:hover::before, .menu-item:focus-visible::before { transform: translateY(-50%) scaleY(1); }
+.menu-item:hover .menu-sub { color: #f59e0b; }
+
+/* player card, top right */
+
+.menu-topright {
+  position: absolute; top: clamp(14px, 3vh, 30px); right: clamp(14px, 3vw, 30px);
+  display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
+}
+.hero-card {
+  display: flex; align-items: center; gap: 12px;
+  background: linear-gradient(160deg, #fffdf7, #eef2f7);
+  border: 3px solid #fff; border-radius: 18px; padding: 10px 18px 10px 10px;
+  box-shadow: var(--shadow);
+}
+.hero-portrait {
+  width: 62px; height: 62px; border-radius: 14px; overflow: hidden;
+  background: #fff; display: grid; place-items: center; flex: none;
+}
+.hero-portrait img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+.hero-name { font-size: 16px; font-weight: 800; color: var(--ink); }
+.hero-level { font-size: 11px; font-weight: 800; color: #8b5cf6; letter-spacing: .06em; text-transform: uppercase; }
+.hero-xp { width: 132px; height: 8px; border-radius: 999px; background: #dbe2ea; overflow: hidden; margin: 5px 0 3px; }
+.hero-xp span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg,#4ade80,#22c55e); }
+.hero-xp-text { font-size: 10px; font-weight: 700; color: #94a3b8; }
+
+.currency-row { display: flex; gap: 8px; }
+.cur-pill {
+  display: flex; align-items: center; gap: 6px;
+  background: linear-gradient(160deg, #fffdf7, #eef2f7);
+  border: 3px solid #fff; border-radius: 999px; padding: 5px 14px 5px 8px;
+  box-shadow: var(--shadow-sm); font-weight: 800; color: var(--ink); font-size: 15px;
+}
+
+/* ------------------------------------------- character / location sheets */
+
+.sheet {
+  position: absolute; inset: 0; overflow-y: auto;
+  background: linear-gradient(180deg, rgba(7,13,28,.93), rgba(7,13,28,.97));
+  backdrop-filter: blur(7px);
+  padding: clamp(56px, 8vh, 84px) clamp(16px, 4vw, 48px) 40px;
+  display: flex; flex-direction: column; align-items: center;
+}
+.sheet-back {
+  position: absolute; top: 18px; left: 18px; z-index: 2;
+  border: 0; background: rgba(255,255,255,.1); color: #fff; cursor: pointer;
+  font-family: var(--font); font-weight: 800; font-size: 15px;
+  padding: 10px 20px; border-radius: 999px; transition: background .15s ease;
+}
+.sheet-back:hover { background: var(--brand); }
+.sheet-title { margin: 0 0 4px; color: #fff; text-align: center; font-size: clamp(24px, 4.4vw, 38px); font-weight: 800; }
+.sheet-sub { margin: 0 0 26px; color: #94a3b8; font-weight: 600; text-align: center; font-size: 15px; }
+.sheet-actions { display: flex; gap: 12px; margin-top: 26px; }
+.sheet-field { display: block; margin-top: 24px; width: min(340px, 100%); }
+.sheet-field span {
+  display: block; font-size: 12px; font-weight: 800; color: #94a3b8;
+  margin-bottom: 6px; text-transform: uppercase; letter-spacing: .06em;
+}
+.sheet-field input {
+  width: 100%; padding: 14px 18px; font-family: var(--font); font-size: 17px; font-weight: 700;
+  border: 3px solid rgba(255,255,255,.18); border-radius: 14px;
+  background: rgba(255,255,255,.96); color: var(--ink);
+}
+.sheet-field input:focus { outline: none; border-color: var(--brand); }
+
+.gbtn {
+  border: 0; cursor: pointer; font-family: var(--font); font-weight: 800;
+  padding: 15px 46px; border-radius: 15px; font-size: 18px;
+  transition: transform .1s ease, filter .15s ease;
+}
+.gbtn:active { transform: translateY(2px); }
+.gbtn-primary { background: linear-gradient(160deg, #4ade80, #16a34a); color: #fff; box-shadow: 0 5px 0 #15803d; }
+.gbtn-primary:hover { filter: brightness(1.08); }
+
+/* character cards */
+
+.pick-grid { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
+.pick-card {
+  border: 4px solid transparent; border-radius: 20px; cursor: pointer;
+  background: linear-gradient(180deg, #fffdf7, #e8edf3);
+  padding: 0 0 12px; width: clamp(132px, 20vw, 178px);
+  font-family: var(--font); overflow: hidden;
+  transition: transform .16s cubic-bezier(.2,1.3,.5,1), border-color .16s ease, box-shadow .16s ease;
+}
+.pick-card:hover { transform: translateY(-6px); }
+.pick-card.is-on {
+  border-color: #4ade80; box-shadow: 0 0 0 5px rgba(74,222,128,.28), var(--shadow);
+  transform: translateY(-6px);
+}
+.pick-art { width: 100%; aspect-ratio: 1 / 1.5; overflow: hidden; background: #fff; }
+.pick-art img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+.pick-name { font-size: 19px; font-weight: 800; color: var(--ink); margin-top: 10px; }
+.pick-blurb { font-size: 11.5px; font-weight: 700; color: #94a3b8; padding: 0 8px; }
+
+/* location cards */
+
+.sheet-wide .loc-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 14px; width: min(1120px, 100%);
+}
+.loc-card {
+  border: 4px solid transparent; border-radius: 20px; cursor: pointer;
+  background: linear-gradient(180deg, #fffdf7, #e8edf3);
+  padding: 0 0 12px; font-family: var(--font); overflow: hidden; text-align: center;
+  transition: transform .16s cubic-bezier(.2,1.3,.5,1), border-color .16s ease, box-shadow .16s ease;
+}
+.loc-card:hover:not(:disabled) { transform: translateY(-6px); border-color: var(--brand); }
+.loc-card:disabled { cursor: not-allowed; }
+.loc-card.is-today { border-color: #f59e0b; box-shadow: 0 0 0 4px rgba(245,158,11,.24); }
+.loc-card.is-here { border-color: #4ade80; }
+.loc-art { position: relative; width: 100%; aspect-ratio: 3 / 2; overflow: hidden; background: #fff; }
+.loc-art img { width: 100%; height: 100%; object-fit: cover; }
+.loc-card.is-locked .loc-art img { filter: grayscale(1) brightness(.62); }
+.loc-lock {
+  position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 4px;
+  background: rgba(10,16,30,.42); color: #fff;
+}
+.loc-lock .ico-img { width: 30px; height: 30px; }
+.loc-lock span { font-size: 12px; font-weight: 800; letter-spacing: .06em; }
+.loc-badge {
+  position: absolute; top: 8px; right: 8px;
+  background: linear-gradient(160deg,#fbbf24,#f59e0b); color: #422006;
+  font-size: 10.5px; font-weight: 800; letter-spacing: .1em;
+  padding: 4px 11px; border-radius: 999px; box-shadow: var(--shadow-sm);
+}
+.loc-here {
+  position: absolute; bottom: 8px; left: 8px; background: #16a34a; color: #fff;
+  font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 999px;
+}
+.loc-name { font-size: 17px; font-weight: 800; color: var(--ink); margin-top: 9px; }
+.loc-blurb { font-size: 11.5px; font-weight: 700; color: #94a3b8; padding: 0 8px; }
+
+@media (max-width: 640px) {
+  .menu-left { width: 100%; background: linear-gradient(100deg, rgba(7,13,28,.95) 40%, rgba(7,13,28,.62) 100%); }
+  .menu-topright { top: auto; bottom: 14px; right: 14px; flex-direction: row; align-items: flex-end; }
+  .hero-card { padding: 6px 12px 6px 6px; }
+  .hero-portrait { width: 44px; height: 44px; }
+  .hero-xp { width: 88px; }
+  .sheet-wide .loc-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+}
+
+/* portrait inside the HUD avatar bubble */
+#hud .avatar img { width: 100%; height: 100%; object-fit: cover; object-position: top center; border-radius: 50%; }
+#hud .avatar { overflow: hidden; padding: 0; background: #fff; }
+
+.loc-badge-free { background: linear-gradient(160deg,#7dd3fc,#3b82f6); color: #fff; }

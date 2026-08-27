@@ -19,6 +19,7 @@ import { SpeechOutput } from "../conversation/SpeechOutput.js";
 import { ProgressStore } from "../progress/ProgressStore.js";
 import { UI } from "../ui/UI.js";
 import { Screens } from "../ui/Screens.js";
+import { Menu, ART } from "../ui/Menu.js";
 
 export class Game {
   constructor(canvas, screenRoot) {
@@ -26,6 +27,7 @@ export class Game {
     this.scene = new SceneManager(canvas);
     this.ui = new UI();
     this.screens = new Screens(screenRoot);
+    this.menu = new Menu(document.querySelector("#menu-root"));
     this.loader = new LessonLoader();
     this.input = new InputManager({
       joystick: document.querySelector("#joystick"),
@@ -67,16 +69,105 @@ export class Game {
 
     await this.loadTodaysLesson();
     this.enterLocation(this.lessonEntry.location, { silent: true });
+    this.applyChosenCharacter();
     this.ui.renderHud(this.progress);
     this.loop();
 
-    this.screens.start(this.progress, {
-      onName: (name) => this.progress.setPlayerName(name),
-      onPlay: () => {
+    // First run goes straight to character select; afterwards, the title menu.
+    if (!this.progress.data.characterId) this.openCharacterSelect({ firstRun: true });
+    else this.openMenu();
+  }
+
+  /* ----------------------------------------------------------- game shell */
+
+  /** Menu is open: freeze the player, hide the HUD, orbit the camera. */
+  setShellMode(on) {
+    this.shellMode = on;
+    this.player.freeze(on);
+    this.input.setEnabled(!on);
+    this.ui.setWorldUiVisible(!on);
+    if (on) {
+      this.ui.showInteract(false);
+      this.speechOut.cancel();
+    } else {
+      this.scene.snapTo(this.player.group.position);
+    }
+  }
+
+  openMenu() {
+    this.setShellMode(true);
+    this.menu.main(this.progress, this.lesson, {
+      play: () => { this.menu.close(); this.setShellMode(false); this.showLessonBrief(); },
+      character: () => this.openCharacterSelect({}),
+      location: () => this.openLocationSelect(),
+      progress: () => this.screens.progressScreen(this.progress, this.manifest),
+      settings: () => this.openSettings()
+    });
+  }
+
+  openCharacterSelect({ firstRun }) {
+    this.setShellMode(true);
+    this.menu.characterSelect(this.progress, {
+      onBack: () => this.openMenu(),
+      onConfirm: (id, name) => {
+        this.progress.data.characterId = id;
+        this.progress.setPlayerName(name);
+        this.applyChosenCharacter();
         this.ui.renderHud(this.progress);
-        this.showLessonBrief();
+        if (firstRun) {
+          this.menu.close();
+          this.setShellMode(false);
+          this.showLessonBrief();
+        } else {
+          this.openMenu();
+        }
       }
     });
+  }
+
+  openLocationSelect() {
+    this.setShellMode(true);
+    this.menu.locationSelect(this.progress, this.manifest, this.location.id,
+      this.lesson && this.lesson.location, {
+        onBack: () => this.openMenu(),
+        onTravel: (id) => {
+          if (id !== this.location.id) this.travel(id);
+          this.menu.close();
+          this.setShellMode(false);
+        }
+      });
+  }
+
+  openSettings() {
+    this.screens.settings(this.progress, SpeechInput.isSupported(), {
+      onChange: (key, value) => {
+        this.progress.setSetting(key, value);
+        if (key === "voice") this.speechOut.setEnabled(value);
+        if (key === "lang") { this.speechOut.setLanguage(value); this.speechIn.setLanguage(value); }
+      },
+      onReset: async () => {
+        this.progress.reset();
+        this.speechOut.setEnabled(this.progress.getSetting("voice"));
+        this.speechOut.setLanguage(this.progress.getSetting("lang"));
+        this.speechIn.setLanguage(this.progress.getSetting("lang"));
+
+        // Put the world back to day one, not wherever the player happened to be.
+        await this.loadTodaysLesson();
+        this.enterLocation(this.lessonEntry.location, { silent: true });
+        this.applyChosenCharacter();
+        this.ui.renderHud(this.progress);
+        this.ui.setQuest(null);
+        this.ui.toast("Progress cleared - starting again from Day 1", "info", 3600);
+        this.openCharacterSelect({ firstRun: true });
+      }
+    });
+  }
+
+  /** Dress the 3D student in the chosen character's colours, and the HUD too. */
+  applyChosenCharacter() {
+    const hero = this.menu.characterById(this.progress.data.characterId);
+    this.player.setAppearance(hero.colors);
+    this.ui.setAvatar(ART + hero.art);
   }
 
   async loadTodaysLesson() {
@@ -148,35 +239,24 @@ export class Game {
     this.ui.on("answer", ({ text, mode, confidence }) => this.answer(text, mode, confidence));
 
     this.input.onAction((name) => {
+      // A popup or the menu owns the keyboard while it is open.
+      if (this.screens.isOpen || this.menu.isOpen) return;
       if (name === "interact") this.tryInteract();
       if (name === "mic" && this.inConversation) this.startListening();
       if (name === "cancel" && this.inConversation) this.leaveConversation();
     });
 
-    document.querySelector("#btn-map").addEventListener("click", () => {
+    const guard = (fn) => () => {
       if (this.inConversation) return this.ui.toast("Finish your conversation first", "warn");
-      this.screens.map(this.manifest, this.progress, this.location.id, { onTravel: (id) => this.travel(id) });
-    });
+      fn();
+    };
+
+    document.querySelector("#btn-menu").addEventListener("click", guard(() => this.openMenu()));
+    document.querySelector("#btn-map").addEventListener("click", guard(() => this.openLocationSelect()));
+    document.querySelector("#btn-lesson").addEventListener("click", guard(() => this.showLessonBrief()));
     document.querySelector("#btn-progress").addEventListener("click", () =>
       this.screens.progressScreen(this.progress, this.manifest));
-    document.querySelector("#btn-settings").addEventListener("click", () =>
-      this.screens.settings(this.progress, SpeechInput.isSupported(), {
-        onChange: (key, value) => {
-          this.progress.setSetting(key, value);
-          if (key === "voice") this.speechOut.setEnabled(value);
-          if (key === "lang") { this.speechOut.setLanguage(value); this.speechIn.setLanguage(value); }
-        },
-        onReset: () => {
-          this.progress.reset();
-          this.ui.renderHud(this.progress);
-          this.ui.toast("Progress cleared", "info");
-          this.loadTodaysLesson().then(() => this.showLessonBrief());
-        }
-      }));
-    document.querySelector("#btn-lesson").addEventListener("click", () => {
-      if (this.inConversation) return this.ui.toast("Finish your conversation first", "warn");
-      this.showLessonBrief();
-    });
+    document.querySelector("#btn-settings").addEventListener("click", () => this.openSettings());
   }
 
   wireSpeech() {
@@ -305,7 +385,7 @@ export class Game {
       onAgain: () => this.startConversationAfterReset(),
       onMap: async () => {
         await this.loadTodaysLesson();
-        this.showLessonBrief();
+        this.openMenu();
       }
     });
   }
@@ -321,6 +401,16 @@ export class Game {
     const now = performance.now();
     const dt = Math.min(0.05, (now - this.lastTime) / 1000);
     this.lastTime = now;
+
+    // Title menu: orbit the location as a living backdrop, nothing else runs.
+    if (this.shellMode) {
+      if (this.npc) this.npc.character.update(dt);
+      this.player.character.update(dt);
+      this.scene.orbit({ x: 0, z: 0 }, dt);
+      this.scene.render();
+      requestAnimationFrame(() => this.loop());
+      return;
+    }
 
     this.player.update(dt, this.input.vector, this.input.running, this.location, this.scene.yaw);
 

@@ -1,0 +1,33 @@
+/* ======================================================================
+   Popups.
+
+   There is no X in the corner: it sat on top of the centred heading. Every
+   dismissable popup carries its own explicit button instead (Done, Close,
+   Let's Go), and also closes on Escape or a click outside the card.
+
+   Results, errors and confirmations are not dismissable at all - the player
+   has to choose an option, so nothing is thrown away by accident.
+   ====================================================================== */
+
+.screen-card { position: relative; }
+
+/* Belt and braces: if any older markup still injects a close button, keep it
+   out of the way of the heading rather than letting it overlap. */
+.screen-close { display: none; }
+
+/* ------------------------------------------------------- confirm dialog */
+
+.confirm-msg {
+  max-width: 400px; margin-left: auto; margin-right: auto;
+  line-height: 1.5; color: #475569;
+}
+
+/* Destructive action: solid red, so it never reads as the default choice.
+   The safe option (Cancel) is the one that holds keyboard focus. */
+.btn-danger-solid {
+  background: linear-gradient(160deg, #f87171, #dc2626);
+  color: #fff; box-shadow: 0 5px 0 #b91c1c;
+}
+.btn-danger-solid:hover { filter: brightness(1.07); }
+
+.screen-actions .btn:focus-visible { outline: 3px solid var(--brand); outline-offset: 3px; }

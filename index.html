@@ -6,6 +6,9 @@
 <meta name="theme-color" content="#12203a" />
 <title>Spoken English Adventure</title>
 <link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/menu.css" />
+<link rel="stylesheet" href="css/icons.css" />
+<link rel="stylesheet" href="css/popup.css" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🎤</text></svg>" />
 <script type="importmap">
 {
@@ -38,14 +41,15 @@
     </div>
 
     <div class="hud-stats">
-      <div class="stat-pill"><span class="ico">🪙</span><span id="hud-coins">0</span></div>
-      <div class="stat-pill"><span class="ico">🔥</span><span id="hud-streak">0</span></div>
+      <div class="stat-pill"><img class="ico" src="spoken_game/icons/coin.png" alt="coins" /><span id="hud-coins">0</span></div>
+      <div class="stat-pill"><img class="ico" src="spoken_game/icons/calendar.png" alt="streak" /><span id="hud-streak">0</span></div>
     </div>
 
     <div class="hud-rail">
-      <button class="rail-btn" id="btn-lesson"><span>📘</span><small>Lesson</small></button>
-      <button class="rail-btn" id="btn-map"><span>🗺️</span><small>Map</small></button>
-      <button class="rail-btn" id="btn-progress"><span>🏆</span><small>Progress</small></button>
+      <button class="rail-btn" id="btn-menu"><span>☰</span><small>Menu</small></button>
+      <button class="rail-btn" id="btn-lesson"><img src="spoken_game/icons/book.png" alt="" /><small>Lesson</small></button>
+      <button class="rail-btn" id="btn-map"><img src="spoken_game/icons/map.png" alt="" /><small>Map</small></button>
+      <button class="rail-btn" id="btn-progress"><img src="spoken_game/icons/cup.png" alt="" /><small>Progress</small></button>
       <button class="rail-btn" id="btn-settings"><span>⚙️</span><small>Settings</small></button>
     </div>
 
@@ -94,6 +98,7 @@
 
   <div id="feedback" class="hidden"></div>
   <div id="toast"></div>
+  <div id="menu-root" class="hidden"></div>
   <div id="screen-root" class="hidden"></div>
 
   <div id="boot">

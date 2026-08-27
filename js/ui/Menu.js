@@ -1,0 +1,254 @@
+/**
+ * Menu - the front end of the game: title menu, character select, location select.
+ *
+ * Structured like a real game shell (main menu -> pick character -> pick place ->
+ * play) and drawn OVER the live 3D scene, so the world keeps moving behind it.
+ *
+ * All artwork comes from the client's asset pack in spoken_game/. Those PNGs have
+ * no alpha channel, so every image sits on a light card - the same way the
+ * original artwork sheet presents them - and the baked background disappears.
+ */
+import { LOCATION_META } from "../world/LocationFactory.js";
+
+export const ART = "spoken_game/";
+
+export const CHARACTERS = [
+  { id: "arjun", name: "Arjun", art: "character/main_character/main_carecter_boy.png",
+    blurb: "Confident and friendly", colors: { top: "#4a6fa5", bottom: "#2f4f8f", hair: "#1b1b1f", skin: 1 } },
+  { id: "priya", name: "Priya", art: "character/main_character/main_crecter_girl.png",
+    blurb: "Curious and quick", colors: { top: "#ff6fa5", bottom: "#3b6ea5", hair: "#2b2118", skin: 1 } },
+  { id: "rohan", name: "Rohan", art: "character/main_character/carecter_1_boy.png",
+    blurb: "Clever and careful", colors: { top: "#f2b33d", bottom: "#3b5f9e", hair: "#241a12", skin: 1 } },
+  { id: "meera", name: "Meera", art: "character/main_character/carecter_girl.png",
+    blurb: "Cheerful and bold", colors: { top: "#c86fd6", bottom: "#a4508f", hair: "#1b1b1f", skin: 1 } }
+];
+
+/**
+ * Transparent icon set (spoken_game/icons/). The opaque originals are kept in
+ * spoken_game/icons/with_background/ and are no longer used.
+ *
+ * Note: microphone.png is actually a SPEAKER graphic despite its name - the
+ * real microphone is mic.png.
+ */
+export const ICONS = {
+  coin: "icons/coin.png",
+  gem: "icons/green_diamond.png",
+  gem2: "icons/green_diamond_2.png",
+  heart: "icons/love.png",
+  star: "icons/star.png",
+  cup: "icons/cup.png",
+  map: "icons/map.png",
+  pin: "icons/location.png",
+  book: "icons/book.png",
+  chat: "icons/chat.png",
+  mic: "icons/mic.png",
+  speaker: "icons/microphone.png",
+  lock: "icons/lock.png",
+  key: "icons/key.png",
+  badge: "icons/badge.png",
+  goldBadge: "icons/gold_badge.png",
+  calendar: "icons/calendar.png",
+  gift: "icons/box.png",
+  charge: "icons/charge.png"
+};
+
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+const icon = (key, cls = "") =>
+  '<img class="ico-img ' + cls + '" src="' + ART + ICONS[key] + '" alt="" />';
+
+export class Menu {
+  constructor(root) {
+    this.root = root;
+    this.page = null;
+  }
+
+  get isOpen() { return !!this.page; }
+
+  render(page, html) {
+    this.unbindEscape();
+    this.page = page;
+    this.root.innerHTML = html;
+    this.root.classList.remove("hidden");
+    requestAnimationFrame(() => this.root.classList.add("is-in"));
+    return this.root;
+  }
+
+  /** Escape backs out of a sub-sheet. Capture phase so the world's Escape
+   *  binding (leave conversation) never fires at the same time. */
+  bindEscape(fn) {
+    this.unbindEscape();
+    this.escHandler = (e) => {
+      if (e.key !== "Escape") return;
+      e.preventDefault();
+      e.stopPropagation();
+      fn();
+    };
+    window.addEventListener("keydown", this.escHandler, true);
+  }
+
+  unbindEscape() {
+    if (!this.escHandler) return;
+    window.removeEventListener("keydown", this.escHandler, true);
+    this.escHandler = null;
+  }
+
+  close() {
+    this.unbindEscape();
+    this.page = null;
+    this.root.classList.remove("is-in");
+    this.root.classList.add("hidden");
+    this.root.innerHTML = "";
+  }
+
+  characterById(id) {
+    return CHARACTERS.find((c) => c.id === id) || CHARACTERS[0];
+  }
+
+  /* ------------------------------------------------------------ main menu */
+
+  main(progress, lesson, handlers) {
+    const hero = this.characterById(progress.data.characterId);
+    const pct = Math.round((progress.xpIntoLevel / progress.xpForLevel) * 100);
+
+    const items = [
+      { id: "play", label: "PLAY", sub: lesson ? "Day " + lesson.day + " · " + lesson.topic : "Start today's lesson", big: true },
+      { id: "character", label: "character", sub: hero.name },
+      { id: "location", label: "location", sub: "Choose where to go" },
+      { id: "progress", label: "progress", sub: "Scores and streak" },
+      { id: "settings", label: "settings", sub: "Voice and accent" }
+    ];
+
+    const list = items.map((it) =>
+      '<button class="menu-item' + (it.big ? " is-big" : "") + '" data-act="' + it.id + '">' +
+        '<span class="menu-label">' + esc(it.label) + "</span>" +
+        '<span class="menu-sub">' + esc(it.sub) + "</span>" +
+      "</button>").join("");
+
+    this.render("main",
+      '<div class="menu-shell">' +
+        '<div class="menu-left">' +
+          '<div class="game-logo">' +
+            '<span class="logo-top">SPOKEN ENGLISH</span>' +
+            '<span class="logo-bottom">ADVENTURE</span>' +
+          "</div>" +
+          '<nav class="menu-list">' + list + "</nav>" +
+        "</div>" +
+
+        '<div class="menu-topright">' +
+          '<div class="hero-card">' +
+            '<div class="hero-portrait"><img src="' + ART + hero.art + '" alt="' + esc(hero.name) + '" /></div>' +
+            '<div class="hero-meta">' +
+              '<div class="hero-name">' + esc(progress.data.playerName) + "</div>" +
+              '<div class="hero-level">Level ' + progress.level + "</div>" +
+              '<div class="hero-xp"><span style="width:' + pct + '%"></span></div>' +
+              '<div class="hero-xp-text">' + progress.xpIntoLevel + " / " + progress.xpForLevel + " XP</div>" +
+            "</div>" +
+          "</div>" +
+          '<div class="currency-row">' +
+            '<div class="cur-pill">' + icon("coin") + "<b>" + progress.coins + "</b></div>" +
+            '<div class="cur-pill">' + icon("star") + "<b>" + progress.data.history.length + "</b></div>" +
+            '<div class="cur-pill">' + icon("calendar") + "<b>" + progress.streak + "</b></div>" +
+          "</div>" +
+        "</div>" +
+      "</div>");
+
+    this.root.querySelectorAll(".menu-item").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const fn = handlers[btn.dataset.act];
+        if (fn) fn();
+      });
+    });
+  }
+
+  /* ---------------------------------------------------- character select */
+
+  characterSelect(progress, { onConfirm, onBack }) {
+    let chosen = progress.data.characterId || CHARACTERS[0].id;
+
+    const cards = CHARACTERS.map((c) =>
+      '<button class="pick-card' + (c.id === chosen ? " is-on" : "") + '" data-id="' + c.id + '">' +
+        '<div class="pick-art"><img src="' + ART + c.art + '" alt="' + esc(c.name) + '" /></div>' +
+        '<div class="pick-name">' + esc(c.name) + "</div>" +
+        '<div class="pick-blurb">' + esc(c.blurb) + "</div>" +
+      "</button>").join("");
+
+    this.render("character",
+      '<div class="sheet">' +
+        '<button class="sheet-back" data-act="back">‹ Back</button>' +
+        '<h2 class="sheet-title">Choose your character</h2>' +
+        '<p class="sheet-sub">This is who you will play as in every conversation.</p>' +
+        '<div class="pick-grid">' + cards + "</div>" +
+        '<label class="sheet-field"><span>Your name</span>' +
+          '<input id="pick-name" maxlength="20" value="' + esc(progress.data.playerName) + '" /></label>' +
+        '<div class="sheet-actions">' +
+          '<button class="gbtn gbtn-primary" data-act="confirm">Confirm</button>' +
+        "</div>" +
+      "</div>");
+
+    const grid = this.root.querySelector(".pick-grid");
+    grid.addEventListener("click", (e) => {
+      const card = e.target.closest(".pick-card");
+      if (!card) return;
+      chosen = card.dataset.id;
+      grid.querySelectorAll(".pick-card").forEach((c) => c.classList.toggle("is-on", c.dataset.id === chosen));
+    });
+
+    this.root.querySelector('[data-act="back"]').addEventListener("click", onBack);
+    this.bindEscape(onBack);
+    this.root.querySelector('[data-act="confirm"]').addEventListener("click", () => {
+      const name = this.root.querySelector("#pick-name").value.trim() || "Student";
+      onConfirm(chosen, name);
+    });
+  }
+
+  /* ----------------------------------------------------- location select */
+
+  locationSelect(progress, manifest, currentId, todayLocation, { onTravel, onBack }) {
+    // A place opens once the student reaches the first lesson set there.
+    const firstDay = {};
+    manifest.lessons.forEach((l) => {
+      if (firstDay[l.location] == null || l.day < firstDay[l.location]) firstDay[l.location] = l.day;
+    });
+    const nextDay = progress.completedLessonIds().length + 1;
+
+    const tiles = Object.keys(LOCATION_META).map((id) => {
+      const meta = LOCATION_META[id];
+      const day = firstDay[id];
+      const locked = day != null && day > nextDay;
+      const isToday = id === todayLocation;
+      // Places with no lesson written yet are open as free practice.
+      const freeRoam = day == null;
+
+      const badge = isToday && !locked ? '<div class="loc-badge">TODAY</div>'
+        : freeRoam ? '<div class="loc-badge loc-badge-free">FREE</div>' : "";
+
+      return '<button class="loc-card' + (locked ? " is-locked" : "") +
+          (id === currentId ? " is-here" : "") + (isToday ? " is-today" : "") +
+          '" data-loc="' + id + '"' + (locked ? " disabled" : "") + ">" +
+        '<div class="loc-art"><img src="' + ART + meta.art + '" alt="' + esc(meta.label) + '" />' +
+          (locked ? '<div class="loc-lock">' + icon("lock") + "<span>Day " + day + "</span></div>" : "") +
+          badge +
+          (id === currentId ? '<div class="loc-here">You are here</div>' : "") +
+        "</div>" +
+        '<div class="loc-name">' + esc(meta.label) + "</div>" +
+        '<div class="loc-blurb">' + esc(freeRoam ? "Free practice - no lesson yet" : meta.blurb) + "</div>" +
+      "</button>";
+    }).join("");
+
+    this.render("location",
+      '<div class="sheet sheet-wide">' +
+        '<button class="sheet-back" data-act="back">‹ Back</button>' +
+        '<h2 class="sheet-title">Where do you want to go?</h2>' +
+        '<p class="sheet-sub">Travel to a place, find someone, and start talking.</p>' +
+        '<div class="loc-grid">' + tiles + "</div>" +
+      "</div>");
+
+    this.root.querySelector('[data-act="back"]').addEventListener("click", onBack);
+    this.bindEscape(onBack);
+    this.root.querySelectorAll(".loc-card").forEach((tile) => {
+      tile.addEventListener("click", () => onTravel(tile.dataset.loc));
+    });
+  }
+}

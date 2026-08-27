@@ -103,6 +103,24 @@ export class SceneManager {
     this.zoom = on ? 0.72 : 1;
   }
 
+  /**
+   * Slow orbit used as the living backdrop behind the title menu, so the shell
+   * feels like a real game rather than a web page with a Play button.
+   */
+  orbit(center, dt) {
+    this.orbitAngle = (this.orbitAngle || 0) + dt * 0.11;
+    const dist = 12.5, height = 7.2;
+    this.camera.position.set(
+      center.x + Math.sin(this.orbitAngle) * dist,
+      height,
+      center.z + Math.cos(this.orbitAngle) * dist
+    );
+    this.camera.lookAt(center.x, 1.3, center.z);
+    this.sun.position.set(center.x + 7, 13, center.z + 6);
+    this.sun.target.position.set(center.x, 0, center.z);
+    this.sun.target.updateMatrixWorld();
+  }
+
   /** World position -> CSS pixels, for anchoring speech bubbles to heads. */
   project(worldPos) {
     const v = worldPos.clone().project(this.camera);
