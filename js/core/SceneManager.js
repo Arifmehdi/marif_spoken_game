@@ -43,10 +43,14 @@ export class SceneManager {
   }
 
   buildLights() {
-    this.ambient = new THREE.HemisphereLight("#ffffff", "#9a8f7a", 1.05);
+    // Tuned by measuring rendered character brightness, not by eye. The
+    // imported models are much darker than the primitive-built world, and at
+    // the old values (1.05 / 1.5 / 0.35) they read as murky silhouettes.
+    // These levels lift them without clipping anything to white.
+    this.ambient = new THREE.HemisphereLight("#ffffff", "#9a8f7a", 2.3);
     this.scene.add(this.ambient);
 
-    this.sun = new THREE.DirectionalLight("#fff3d6", 1.5);
+    this.sun = new THREE.DirectionalLight("#fff3d6", 1.8);
     this.sun.position.set(7, 13, 6);
     this.sun.castShadow = true;
     this.sun.shadow.mapSize.set(2048, 2048);
@@ -57,7 +61,7 @@ export class SceneManager {
     this.scene.add(this.sun);
     this.scene.add(this.sun.target);
 
-    this.fill = new THREE.DirectionalLight("#cfe4ff", 0.35);
+    this.fill = new THREE.DirectionalLight("#cfe4ff", 0.7);
     this.fill.position.set(-8, 6, -6);
     this.scene.add(this.fill);
   }
@@ -133,8 +137,11 @@ export class SceneManager {
   }
 
   resize() {
-    const w = this.canvas.clientWidth || window.innerWidth;
-    const h = this.canvas.clientHeight || window.innerHeight;
+    // Guard against a zero-sized canvas (hidden tab, display:none during boot,
+    // a not-yet-laid-out container). w/h would be 0/0 = NaN, which poisons the
+    // projection matrix and renders an empty black frame until the next resize.
+    const w = Math.max(1, this.canvas.clientWidth || window.innerWidth || 1);
+    const h = Math.max(1, this.canvas.clientHeight || window.innerHeight || 1);
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();

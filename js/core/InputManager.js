@@ -7,12 +7,25 @@
 export class InputManager {
   constructor(options = {}) {
     this.move = { x: 0, y: 0 };
-    this.running = false;
+
+    // Three independent ways to run, OR-ed together by the `running` getter:
+    //   runLatched - the Run button, a sticky toggle (stays on until tapped off)
+    //   runHeld    - Shift held on a keyboard, temporary
+    //   stickBoost - thumbstick pushed all the way over, temporary
+    this.runLatched = false;
+    this.runHeld = false;
+    this.stickBoost = false;
+
     this.keys = new Set();
     this.enabled = true;
     this.actionHandlers = [];
     this.stick = { active: false, id: null, cx: 0, cy: 0, radius: 56 };
+    this.runButton = null;
     this.bind(options);
+  }
+
+  get running() {
+    return this.runLatched || this.runHeld || this.stickBoost;
   }
 
   onAction(fn) { this.actionHandlers.push(fn); return this; }
@@ -26,11 +39,29 @@ export class InputManager {
     if (joystick && knob) this.bindStick(joystick, knob);
 
     if (runButton) {
-      const set = (on) => { this.running = on; runButton.classList.toggle("is-active", on); };
-      runButton.addEventListener("pointerdown", (e) => { e.preventDefault(); set(true); });
-      ["pointerup", "pointercancel", "pointerleave"].forEach((ev) =>
-        runButton.addEventListener(ev, () => set(false)));
+      this.runButton = runButton;
+      // Tap to select, tap again to deselect. Holding it down is no good on a
+      // phone - the other thumb is busy on the joystick.
+      runButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.setRunLatched(!this.runLatched);
+      });
+      this.paintRunButton();
     }
+  }
+
+  setRunLatched(on) {
+    this.runLatched = on;
+    this.paintRunButton();
+  }
+
+  paintRunButton() {
+    const btn = this.runButton;
+    if (!btn) return;
+    btn.classList.toggle("is-latched", this.runLatched);
+    btn.setAttribute("aria-pressed", this.runLatched ? "true" : "false");
+    const label = btn.querySelector(".btn-label");
+    if (label) label.textContent = this.runLatched ? "Running" : "Run";
   }
 
   onKey(e, down) {
@@ -48,7 +79,7 @@ export class InputManager {
     if (!tracked.includes(k)) return;
     e.preventDefault();
     down ? this.keys.add(k) : this.keys.delete(k);
-    this.running = this.keys.has("shift");
+    this.runHeld = this.keys.has("shift");
     this.updateFromKeys();
   }
 
@@ -69,6 +100,7 @@ export class InputManager {
     const reset = () => {
       this.stick.active = false;
       this.stick.id = null;
+      this.stickBoost = false;      // releasing the stick must drop the boost
       knob.style.transform = "translate(-50%, -50%)";
       this.updateFromKeys();
     };
@@ -107,13 +139,22 @@ export class InputManager {
     knob.style.transform = "translate(calc(-50% + " + dx + "px), calc(-50% + " + dy + "px))";
     this.move.x = dx / this.stick.radius;
     this.move.y = dy / this.stick.radius;
-    this.running = clamped / this.stick.radius > 0.85;
+    this.stickBoost = clamped / this.stick.radius > 0.85;
   }
 
-  /** Freeze movement while a conversation or menu is open. */
+  /**
+   * Freeze movement while a conversation or menu is open. The Run toggle is a
+   * deliberate choice by the player, so it survives; the momentary boosts do not.
+   */
   setEnabled(on) {
     this.enabled = on;
-    if (!on) { this.move.x = 0; this.move.y = 0; this.keys.clear(); }
+    if (!on) {
+      this.move.x = 0;
+      this.move.y = 0;
+      this.keys.clear();
+      this.runHeld = false;
+      this.stickBoost = false;
+    }
   }
 
   get vector() {

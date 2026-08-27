@@ -9,6 +9,15 @@ function hideLoader() {
   if (loader) loader.classList.add("hidden");
 }
 
+/**
+ * Build stamp. Browsers cache ES modules very aggressively, and a stale copy
+ * looks exactly like "the fix did not work". Open the console (F12) and check
+ * this line matches what you expect before reporting a visual problem.
+ */
+export const BUILD = "2026-08-28g · marker turns green in talk range";
+console.log("%c Spoken English Adventure ", "background:#3b82f6;color:#fff;font-weight:bold",
+  "build:", BUILD);
+
 const game = new Game(canvas, screenRoot);
 
 game.boot()

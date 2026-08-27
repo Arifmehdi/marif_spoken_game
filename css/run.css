@@ -1,0 +1,27 @@
+/* Run button: a sticky toggle, not a hold-down.
+   Selected state has to be obvious at a glance on a phone, so it changes
+   colour, keeps a ring, and the label reads "Running". */
+
+.round-btn { position: relative; transition: transform .1s ease, background .18s ease, box-shadow .18s ease; }
+
+#btn-run.is-latched {
+  background: linear-gradient(160deg, #fbbf24, #f59e0b);
+  border-color: #fff;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, .32), var(--shadow);
+  color: #3b2600;
+}
+#btn-run.is-latched .btn-label { color: #3b2600; }
+
+/* small pulse so switching it on reads as a state change, not a flicker */
+#btn-run.is-latched .btn-icon { animation: run-bob .55s ease-in-out infinite; }
+@keyframes run-bob {
+  0%, 100% { transform: translateX(-1px); }
+  50%      { transform: translateX(2px); }
+}
+
+/* the pressed look must not be mistaken for the selected look */
+#btn-run:active { transform: scale(.92); }
+
+@media (prefers-reduced-motion: reduce) {
+  #btn-run.is-latched .btn-icon { animation: none; }
+}

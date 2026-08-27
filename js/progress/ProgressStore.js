@@ -161,6 +161,54 @@ export class ProgressStore {
     return { xp, coins, stars: summary.stars, streak, bonuses, leveledUp: afterLevel > beforeLevel, level: afterLevel };
   }
 
+  /**
+   * Free Play. Awards reduced XP and coins, and deliberately does NOT mark the
+   * lesson complete or touch the daily streak: practising must never skip the
+   * student forward through the daily progression, and must not let them farm
+   * the streak bonus by replaying one easy conversation.
+   */
+  recordPractice(summary) {
+    const r = this.config.rewards;
+    const xp = Math.round(summary.xp * 0.5);
+    const coins = Math.round(summary.stars * r.coinsPerStar * 0.5);
+
+    const beforeLevel = this.level;
+    this.data.xp += xp;
+    this.data.coins += coins;
+    const afterLevel = this.level;
+
+    // A better score still counts - it is the same conversation. Only update a
+    // lesson that was already completed, so practice never creates a record
+    // that would read as "finished".
+    const prev = this.data.lessons[summary.lessonId];
+    if (prev && prev.completedAt) {
+      prev.bestScore = Math.max(prev.bestScore, summary.percent);
+      prev.stars = Math.max(prev.stars || 0, summary.stars);
+      prev.attempts = (prev.attempts || 0) + 1;
+    }
+
+    this.data.history.push({
+      date: ProgressStore.todayKey(),
+      lessonId: summary.lessonId,
+      day: summary.day,
+      topic: summary.topic,
+      percent: summary.percent,
+      correctResponses: summary.correctResponses,
+      totalResponses: summary.totalResponses,
+      xp, coins,
+      stars: summary.stars,
+      stats: summary.stats,
+      practice: true
+    });
+    if (this.data.history.length > 400) this.data.history = this.data.history.slice(-400);
+
+    this.save();
+    return {
+      xp, coins, stars: summary.stars, streak: this.data.streak, bonuses: [],
+      leveledUp: afterLevel > beforeLevel, level: afterLevel, practice: true
+    };
+  }
+
   /* ---------------------------------------------------------- statistics */
 
   /** Powers the Progress screen (specification section 10). */

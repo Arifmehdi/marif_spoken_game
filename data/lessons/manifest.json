@@ -3,13 +3,75 @@
   "title": "Spoken English Adventure",
   "description": "Daily conversation lessons. Add a new file here and the game picks it up - no code changes.",
   "lessons": [
-    { "day": 1, "file": "day_001.json", "topic": "At School",            "location": "school",     "difficulty": "beginner" },
-    { "day": 2, "file": "day_002.json", "topic": "Meeting a New Friend", "location": "park",       "difficulty": "beginner" },
-    { "day": 3, "file": "day_003.json", "topic": "At a Shop",            "location": "shop",       "difficulty": "beginner" },
-    { "day": 4, "file": "day_004.json", "topic": "At a Restaurant",      "location": "restaurant", "difficulty": "elementary" },
-    { "day": 5, "file": "day_005.json", "topic": "Asking for Directions","location": "city",       "difficulty": "elementary" },
-    { "day": 6, "file": "day_006.json", "topic": "Talking About Family", "location": "home",       "difficulty": "beginner" },
-    { "day": 7, "file": "day_007.json", "topic": "Daily Routine",        "location": "home",       "difficulty": "elementary" },
-    { "day": 8, "file": "day_008.json", "topic": "At the Doctor",        "location": "hospital",   "difficulty": "intermediate" }
+    {
+      "day": 1,
+      "file": "day_001.json",
+      "topic": "At School",
+      "location": "school",
+      "difficulty": "beginner"
+    },
+    {
+      "day": 2,
+      "file": "day_002.json",
+      "topic": "Meeting a New Friend",
+      "location": "park",
+      "difficulty": "beginner"
+    },
+    {
+      "day": 3,
+      "file": "day_003.json",
+      "topic": "At a Shop",
+      "location": "shop",
+      "difficulty": "beginner"
+    },
+    {
+      "day": 4,
+      "file": "day_004.json",
+      "topic": "At a Restaurant",
+      "location": "restaurant",
+      "difficulty": "elementary"
+    },
+    {
+      "day": 5,
+      "file": "day_005.json",
+      "topic": "Asking for Directions",
+      "location": "city",
+      "difficulty": "elementary"
+    },
+    {
+      "day": 6,
+      "file": "day_006.json",
+      "topic": "Talking About Family",
+      "location": "home",
+      "difficulty": "beginner"
+    },
+    {
+      "day": 7,
+      "file": "day_007.json",
+      "topic": "Daily Routine",
+      "location": "home",
+      "difficulty": "elementary"
+    },
+    {
+      "day": 8,
+      "file": "day_008.json",
+      "topic": "At the Doctor",
+      "location": "hospital",
+      "difficulty": "intermediate"
+    },
+    {
+      "day": 9,
+      "file": "day_009.json",
+      "topic": "At the Bus Stop",
+      "location": "transport",
+      "difficulty": "elementary"
+    },
+    {
+      "day": 10,
+      "file": "day_010.json",
+      "topic": "At the Workplace",
+      "location": "workplace",
+      "difficulty": "intermediate"
+    }
   ]
 }

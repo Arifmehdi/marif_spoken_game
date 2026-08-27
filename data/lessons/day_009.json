@@ -1,0 +1,64 @@
+{
+  "lesson_id": "day_009",
+  "day": 9,
+  "topic": "At the Bus Stop",
+  "location": "transport",
+  "difficulty": "elementary",
+  "characters": [{ "id": "conductor", "name": "Mr. Das", "role": "police" }],
+  "intro": "You need to catch a bus to the market. Ask the conductor for help.",
+  "vocabulary": ["bus", "ticket", "stop", "how long", "get down"],
+  "conversation": [
+    { "speaker": "conductor", "text": "Hello! Which bus are you looking for?" },
+    {
+      "speaker": "student",
+      "prompt": "Say where you want to go.",
+      "expected": ["I want to go to the market.", "I am going to the market.", "I need to go to the station."],
+      "keywords": [["want", "going", "need"]],
+      "expects": "place",
+      "slot": "place",
+      "hint": "Try: \"I want to go to the market.\"",
+      "points": 20
+    },
+    { "speaker": "conductor", "text": "The number twelve bus goes there. It comes in ten minutes." },
+    {
+      "speaker": "student",
+      "prompt": "Ask how much the ticket costs.",
+      "expected": ["How much is the ticket?", "What is the ticket price?", "How much does it cost?"],
+      "keywords": [["much", "price", "cost"]],
+      "expects": "question",
+      "hint": "Try: \"How much is the ticket?\"",
+      "points": 20
+    },
+    { "speaker": "conductor", "text": "It is twenty rupees. Please have the exact change ready." },
+    {
+      "speaker": "student",
+      "prompt": "Buy one ticket.",
+      "expected": ["One ticket, please.", "Please give me one ticket.", "I would like one ticket."],
+      "keywords": [["ticket"]],
+      "expects": "request",
+      "slot": "number",
+      "hint": "Try: \"One ticket, please.\"",
+      "points": 20
+    },
+    { "speaker": "conductor", "text": "Here is your ticket. Keep it safe." },
+    {
+      "speaker": "student",
+      "prompt": "Ask where you should get down.",
+      "expected": ["Where should I get down?", "Where do I get off?", "Which stop should I get down at?"],
+      "keywords": [["where"], ["down", "off", "stop"]],
+      "expects": "question",
+      "hint": "Try: \"Where should I get down?\"",
+      "points": 20
+    },
+    { "speaker": "conductor", "text": "The fourth stop. I will tell you when we reach it." },
+    {
+      "speaker": "student",
+      "prompt": "Thank the conductor.",
+      "expected": ["Thank you very much.", "Thank you sir.", "Thanks a lot."],
+      "keywords": ["thank"],
+      "expects": "closing",
+      "hint": "Try: \"Thank you very much.\"",
+      "points": 20
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+/* Pause menu. Vertical button stack so Resume is the obvious default and
+   Quit sits furthest from the thumb on a phone. */
+
+.pause-head { text-align: center; }
+
+.pause-bars {
+  display: flex; gap: 7px; justify-content: center; margin-bottom: 10px;
+}
+.pause-bars i {
+  width: 11px; height: 34px; border-radius: 4px;
+  background: linear-gradient(180deg, #60a5fa, #2563eb);
+}
+
+.pause-where { font-weight: 700; color: #64748b; font-size: 14px; }
+.pause-step {
+  display: inline-block; margin-top: 8px;
+  background: #eef2f7; color: #475569;
+  font-size: 12px; font-weight: 800; letter-spacing: .05em;
+  padding: 5px 14px; border-radius: 999px;
+}
+
+.pause-actions {
+  display: flex; flex-direction: column; gap: 10px;
+  margin-top: 22px; width: min(300px, 100%); margin-left: auto; margin-right: auto;
+}
+.pause-actions .btn { width: 100%; }

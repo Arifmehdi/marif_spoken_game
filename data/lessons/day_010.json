@@ -1,0 +1,65 @@
+{
+  "lesson_id": "day_010",
+  "day": 10,
+  "topic": "At the Workplace",
+  "location": "workplace",
+  "difficulty": "intermediate",
+  "characters": [{ "id": "manager", "name": "Ms. Nair", "role": "teacher" }],
+  "intro": "You are visiting an office with your class. Introduce yourself politely to the manager.",
+  "vocabulary": ["introduce", "work", "learn", "interested", "opportunity"],
+  "conversation": [
+    { "speaker": "manager", "text": "Good morning! Welcome to our office. Please introduce yourself." },
+    {
+      "speaker": "student",
+      "prompt": "Introduce yourself politely.",
+      "expected": ["Good morning, my name is Arjun.", "Good morning, I am Arjun.", "Hello, my name is Priya."],
+      "keywords": [["name", "i"]],
+      "expects": "name",
+      "slot": "name",
+      "hint": "Try: \"Good morning, my name is ______.\"",
+      "points": 20
+    },
+    { "speaker": "manager", "text": "Nice to meet you. What would you like to become in the future?" },
+    {
+      "speaker": "student",
+      "prompt": "Say what you want to become.",
+      "expected": ["I want to become a doctor.", "I would like to be an engineer.", "I want to be a teacher."],
+      "keywords": [["want", "would", "like"], ["become", "be"]],
+      "expects": "state",
+      "slot": "job",
+      "hint": "Try: \"I want to become a doctor.\"",
+      "points": 20
+    },
+    { "speaker": "manager", "text": "That is a wonderful goal. Why did you choose it?" },
+    {
+      "speaker": "student",
+      "prompt": "Give a reason for your choice.",
+      "expected": ["Because I want to help people.", "Because I like helping others.", "Because I find it interesting."],
+      "keywords": [["because"]],
+      "expects": "state",
+      "slot": "reason",
+      "hint": "Try: \"Because I want to help people.\"",
+      "points": 20
+    },
+    { "speaker": "manager", "text": "Excellent thinking. Do you have any questions about our work?" },
+    {
+      "speaker": "student",
+      "prompt": "Ask the manager a question about the office.",
+      "expected": ["What work do you do here?", "How many people work here?", "What does your company do?"],
+      "keywords": [["what", "how"], ["work", "do", "company"]],
+      "expects": "question",
+      "hint": "Try: \"What work do you do here?\"",
+      "points": 20
+    },
+    { "speaker": "manager", "text": "We design software for schools. Study hard and you could join us one day!" },
+    {
+      "speaker": "student",
+      "prompt": "Thank the manager and say goodbye.",
+      "expected": ["Thank you for your time.", "Thank you, goodbye.", "Thank you very much, goodbye."],
+      "keywords": [["thank"]],
+      "expects": "closing",
+      "hint": "Try: \"Thank you for your time.\"",
+      "points": 20
+    }
+  ]
+}

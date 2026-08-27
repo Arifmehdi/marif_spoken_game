@@ -73,7 +73,9 @@ export class Player {
       const speed = (running ? RUN : WALK) * Math.min(1, mag);
       this.velocity.set(dx, 0, dz).normalize().multiplyScalar(speed);
       this.facing = Math.atan2(dx, dz);
-      this.character.setState(running && mag > 0.85 ? "run" : "walk");
+      // Pick the animation from the speed actually being travelled, so a latched
+      // run on a half-pushed stick never plays a run cycle at walking pace.
+      this.character.setState(speed > WALK ? "run" : "walk");
     } else {
       this.velocity.multiplyScalar(0.0001);
       this.character.setState("idle");

@@ -12,14 +12,20 @@ import { LOCATION_META } from "../world/LocationFactory.js";
 
 export const ART = "spoken_game/";
 
+/**
+ * `model` names an entry in ModelLibrary. Only two student models exist so far
+ * (one boy, one girl), so the two boys share one and the two girls share the
+ * other. Their 2D portraits still differ. Drop in two more .glb files and give
+ * them their own `model` key to make all four distinct in the world.
+ */
 export const CHARACTERS = [
-  { id: "arjun", name: "Arjun", art: "character/main_character/main_carecter_boy.png",
+  { id: "arjun", name: "Arjun", art: "character/main_character/main_carecter_boy.png", model: "boy",
     blurb: "Confident and friendly", colors: { top: "#4a6fa5", bottom: "#2f4f8f", hair: "#1b1b1f", skin: 1 } },
-  { id: "priya", name: "Priya", art: "character/main_character/main_crecter_girl.png",
+  { id: "priya", name: "Priya", art: "character/main_character/main_crecter_girl.png", model: "girl",
     blurb: "Curious and quick", colors: { top: "#ff6fa5", bottom: "#3b6ea5", hair: "#2b2118", skin: 1 } },
-  { id: "rohan", name: "Rohan", art: "character/main_character/carecter_1_boy.png",
+  { id: "rohan", name: "Rohan", art: "character/main_character/carecter_1_boy.png", model: "boy",
     blurb: "Clever and careful", colors: { top: "#f2b33d", bottom: "#3b5f9e", hair: "#241a12", skin: 1 } },
-  { id: "meera", name: "Meera", art: "character/main_character/carecter_girl.png",
+  { id: "meera", name: "Meera", art: "character/main_character/carecter_girl.png", model: "girl",
     blurb: "Cheerful and bold", colors: { top: "#c86fd6", bottom: "#a4508f", hair: "#1b1b1f", skin: 1 } }
 ];
 
@@ -114,6 +120,7 @@ export class Menu {
 
     const items = [
       { id: "play", label: "PLAY", sub: lesson ? "Day " + lesson.day + " · " + lesson.topic : "Start today's lesson", big: true },
+      { id: "free", label: "free play", sub: "Any place, any time" },
       { id: "character", label: "character", sub: hero.name },
       { id: "location", label: "location", sub: "Choose where to go" },
       { id: "progress", label: "progress", sub: "Scores and streak" },
@@ -205,24 +212,32 @@ export class Menu {
 
   /* ----------------------------------------------------- location select */
 
-  locationSelect(progress, manifest, currentId, todayLocation, { onTravel, onBack }) {
+  /**
+   * @param {boolean} free  Free Play: every place is open and every card shows
+   *   the conversation waiting there. Otherwise places unlock day by day.
+   */
+  locationSelect(progress, manifest, currentId, todayLocation, { onTravel, onBack, free = false }) {
     // A place opens once the student reaches the first lesson set there.
-    const firstDay = {};
+    const firstDay = {}, topicAt = {};
     manifest.lessons.forEach((l) => {
-      if (firstDay[l.location] == null || l.day < firstDay[l.location]) firstDay[l.location] = l.day;
+      if (firstDay[l.location] == null || l.day < firstDay[l.location]) {
+        firstDay[l.location] = l.day;
+        topicAt[l.location] = l.topic;
+      }
     });
     const nextDay = progress.completedLessonIds().length + 1;
 
     const tiles = Object.keys(LOCATION_META).map((id) => {
       const meta = LOCATION_META[id];
       const day = firstDay[id];
-      const locked = day != null && day > nextDay;
-      const isToday = id === todayLocation;
-      // Places with no lesson written yet are open as free practice.
-      const freeRoam = day == null;
+      const locked = !free && day != null && day > nextDay;
+      const isToday = !free && id === todayLocation;
+      const done = day != null &&
+        progress.lessonRecord("day_" + String(day).padStart(3, "0"));
 
-      const badge = isToday && !locked ? '<div class="loc-badge">TODAY</div>'
-        : freeRoam ? '<div class="loc-badge loc-badge-free">FREE</div>' : "";
+      const badge = isToday ? '<div class="loc-badge">TODAY</div>'
+        : free && done ? '<div class="loc-badge loc-badge-done">' + done.bestScore + "%</div>"
+        : "";
 
       return '<button class="loc-card' + (locked ? " is-locked" : "") +
           (id === currentId ? " is-here" : "") + (isToday ? " is-today" : "") +
@@ -233,15 +248,17 @@ export class Menu {
           (id === currentId ? '<div class="loc-here">You are here</div>' : "") +
         "</div>" +
         '<div class="loc-name">' + esc(meta.label) + "</div>" +
-        '<div class="loc-blurb">' + esc(freeRoam ? "Free practice - no lesson yet" : meta.blurb) + "</div>" +
+        '<div class="loc-blurb">' + esc(free && topicAt[id] ? topicAt[id] : meta.blurb) + "</div>" +
       "</button>";
     }).join("");
 
     this.render("location",
       '<div class="sheet sheet-wide">' +
         '<button class="sheet-back" data-act="back">‹ Back</button>' +
-        '<h2 class="sheet-title">Where do you want to go?</h2>' +
-        '<p class="sheet-sub">Travel to a place, find someone, and start talking.</p>' +
+        '<h2 class="sheet-title">' + (free ? "Free Play" : "Where do you want to go?") + "</h2>" +
+        '<p class="sheet-sub">' + (free
+          ? "Pick any place and practise its conversation as many times as you like."
+          : "Travel to a place, find someone, and start talking.") + "</p>" +
         '<div class="loc-grid">' + tiles + "</div>" +
       "</div>");
 

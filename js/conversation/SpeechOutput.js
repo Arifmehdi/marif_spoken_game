@@ -66,7 +66,15 @@ export class SpeechOutput {
       if (voice) utter.voice = voice;
 
       let settled = false;
-      const finish = () => { if (!settled) { settled = true; this.current = null; resolve(); } };
+      const finish = () => {
+        if (settled) return;
+        // While paused, hold the promise open. Resolving here would let the
+        // conversation advance to the next turn behind the pause screen.
+        if (this.paused) { setTimeout(finish, 250); return; }
+        settled = true;
+        this.current = null;
+        resolve();
+      };
       utter.onend = finish;
       utter.onerror = finish;
 
@@ -85,6 +93,25 @@ export class SpeechOutput {
       try { this.synth.cancel(); } catch (err) { /* nothing playing */ }
     }
     this.current = null;
+  }
+
+  /**
+   * Hold the current line mid-sentence. Deliberately NOT cancel(): cancelling
+   * fires onend, which would resolve speak() and advance the conversation
+   * while the pause screen is up.
+   */
+  pause() {
+    this.paused = true;
+    if (this.synth) {
+      try { this.synth.pause(); } catch (err) { /* not speaking */ }
+    }
+  }
+
+  resume() {
+    this.paused = false;
+    if (this.synth) {
+      try { this.synth.resume(); } catch (err) { /* nothing to resume */ }
+    }
   }
 
   setEnabled(on) {

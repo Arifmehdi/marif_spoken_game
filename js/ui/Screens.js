@@ -60,6 +60,9 @@ export class Screens {
    * Escape maps to the safe option.
    */
   confirm(message, { title = "Are you sure?", yes = "Yes", no = "Cancel", danger = true, onYes, onNo } = {}) {
+    // A confirm is a fresh decision - never inherit the previous screen's
+    // onClose, or dismissing it would also fire that screen's return handler.
+    this.onClose = null;
     const card = this.show(
       '<h2 class="screen-title">' + esc(title) + "</h2>" +
       '<p class="screen-sub confirm-msg">' + esc(message) + "</p>" +
@@ -92,6 +95,47 @@ export class Screens {
   }
 
   get isOpen() { return !this.root.classList.contains("hidden"); }
+
+  /* --------------------------------------------------------------- pause */
+
+  /**
+   * Pause menu. Not dismissable by clicking away - a stray tap on the backdrop
+   * should never silently resume a paused lesson - but Escape resumes, which is
+   * what every game does.
+   *
+   * @param {object} info { topic, day, step, total, inConversation }
+   */
+  pause(info, { onResume, onRestart, onSettings, onQuit }) {
+    const where = info.topic
+      ? '<div class="pause-where">Day ' + info.day + " · " + esc(info.topic) + "</div>" : "";
+    const step = info.inConversation && info.total
+      ? '<div class="pause-step">Question ' + info.step + " of " + info.total + "</div>" : "";
+
+    const card = this.show(
+      '<div class="pause-head">' +
+        '<div class="pause-bars"><i></i><i></i></div>' +
+        '<h2 class="screen-title">Paused</h2>' +
+        where + step +
+      "</div>" +
+      '<div class="pause-actions">' +
+        '<button class="btn btn-big btn-primary" id="pz-resume">Resume</button>' +
+        (info.inConversation
+          ? '<button class="btn btn-ghost" id="pz-restart">Restart Conversation</button>' : "") +
+        '<button class="btn btn-ghost" id="pz-settings">Settings</button>' +
+        '<button class="btn btn-danger" id="pz-quit">Quit to Menu</button>' +
+      "</div>",
+      { dismissable: false });
+
+    card.querySelector("#pz-resume").addEventListener("click", onResume);
+    card.querySelector("#pz-settings").addEventListener("click", onSettings);
+    card.querySelector("#pz-quit").addEventListener("click", onQuit);
+    const restart = card.querySelector("#pz-restart");
+    if (restart) restart.addEventListener("click", onRestart);
+
+    card.querySelector("#pz-resume").focus();
+    this.bindEscape(onResume);
+    return card;
+  }
 
   /* --------------------------------------------------------------- start */
 
@@ -159,7 +203,7 @@ export class Screens {
     const card = this.show(
       '<div class="result-head ' + summary.band.class + '">' +
         '<div class="result-emoji">' + summary.band.emoji + "</div>" +
-        '<h2 class="screen-title">Lesson Complete!</h2>' +
+        '<h2 class="screen-title">' + (award.practice ? 'Practice Complete!' : 'Lesson Complete!') + '</h2>' +
         '<div class="result-topic">Day ' + summary.day + " · " + esc(summary.topic) + "</div>" +
         '<div class="result-percent">' + summary.percent + "%</div>" +
         '<div class="result-band">' + esc(summary.band.label) + "</div>" +
@@ -189,7 +233,7 @@ export class Screens {
 
       '<div class="screen-actions">' +
         '<button class="btn btn-ghost" id="res-again">Practise Again</button>' +
-        '<button class="btn btn-primary" id="res-map">Next Lesson</button>' +
+        '<button class="btn btn-primary" id="res-map">' + (award.practice ? 'Back to Free Play' : 'Next Lesson') + '</button>' +
       "</div>",
       { dismissable: false });
 

@@ -100,7 +100,8 @@ function tree(group, x, z, scale = 1) {
     g.add(b);
   });
   group.add(g);
-  return { x, z, w: 0.7, d: 0.7 };
+  // Collider must grow with the trunk, or a big tree can be walked through.
+  return { x, z, w: 0.7 * scale, d: 0.7 * scale };
 }
 
 function shelf(group, x, z, rotY = 0, w = 1.6) {
@@ -399,6 +400,8 @@ const BUILDERS = {
       group.add(stripe);
     }
 
+    // Storey heights, not doll's-house heights: a 1.3-unit character next to a
+    // 5-unit "building" made the whole street look like a toy.
     const COLORS = ["#c96b6b", "#6b8fc9", "#c9a76b", "#7fb894", "#a88fc9", "#c98fa8"];
     [[-9, -7, 5, 6], [-9.5, 0, 4.5, 7], [-9, 7.5, 5, 5], [9, -7.5, 5, 8], [9.5, 0.5, 4.5, 6], [9, 8, 5, 5]]
       .forEach(([x, z, w, h], i) => {

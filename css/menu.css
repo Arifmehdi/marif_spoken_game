@@ -209,3 +209,5 @@
 #hud .avatar { overflow: hidden; padding: 0; background: #fff; }
 
 .loc-badge-free { background: linear-gradient(160deg,#7dd3fc,#3b82f6); color: #fff; }
+
+.loc-badge-done { background: linear-gradient(160deg,#4ade80,#16a34a); color: #fff; }

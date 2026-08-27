@@ -11,6 +11,7 @@ import { InputManager } from "./InputManager.js";
 import { Player } from "../world/Player.js";
 import { NPC } from "../world/NPC.js";
 import { buildLocation, disposeLocation, LOCATION_META } from "../world/LocationFactory.js";
+import { ModelLibrary } from "../world/ModelLibrary.js";
 import { LessonLoader } from "../conversation/LessonLoader.js";
 import { Evaluator } from "../conversation/Evaluator.js";
 import { ConversationEngine } from "../conversation/ConversationEngine.js";
@@ -21,6 +22,24 @@ import { UI } from "../ui/UI.js";
 import { Screens } from "../ui/Screens.js";
 import { Menu, ART } from "../ui/Menu.js";
 
+/**
+ * Which 3D model each NPC role uses.
+ *
+ * Only one adult model has been delivered so far, so every role falls back to
+ * it - a real character everywhere beats a primitive placeholder. As more .glb
+ * files arrive, register them in ModelLibrary.MODELS and add the role here.
+ */
+const NPC_MODELS = {
+  teacher: "teacher",
+  mother: "teacher",
+  doctor: "teacher",
+  friend: "teacher",
+  shopkeeper: "teacher",
+  waiter: "teacher",
+  police: "teacher"
+};
+const NPC_MODEL_FALLBACK = "teacher";
+
 export class Game {
   constructor(canvas, screenRoot) {
     this.canvas = canvas;
@@ -29,6 +48,7 @@ export class Game {
     this.screens = new Screens(screenRoot);
     this.menu = new Menu(document.querySelector("#menu-root"));
     this.loader = new LessonLoader();
+    this.models = new ModelLibrary(this.scene.renderer);
     this.input = new InputManager({
       joystick: document.querySelector("#joystick"),
       knob: document.querySelector("#knob"),
@@ -37,8 +57,10 @@ export class Game {
 
     this.location = null;
     this.npc = null;
-    this.lesson = null;
+    this.lesson = null;        // today's daily lesson
+    this.activeLesson = null;  // what the player is actually here to do
     this.lessonEntry = null;
+    this.mode = "daily";       // "daily" | "free"
     this.inConversation = false;
     this.lastTime = performance.now();
     this._headWorld = new THREE.Vector3();
@@ -67,6 +89,10 @@ export class Game {
     this.wireEngine();
     this.wireUI();
 
+    // Start both downloads now so they finish behind the title menu, rather
+    // than mid-lesson with a placeholder standing in.
+    this.models.prefetch(["boy", "girl", NPC_MODEL_FALLBACK]);
+
     await this.loadTodaysLesson();
     this.enterLocation(this.lessonEntry.location, { silent: true });
     this.applyChosenCharacter();
@@ -83,6 +109,7 @@ export class Game {
   /** Menu is open: freeze the player, hide the HUD, orbit the camera. */
   setShellMode(on) {
     this.shellMode = on;
+    if (on) this.mapOpen = false;   // the menu shell supersedes the travel map
     this.player.freeze(on);
     this.input.setEnabled(!on);
     this.ui.setWorldUiVisible(!on);
@@ -97,7 +124,14 @@ export class Game {
   openMenu() {
     this.setShellMode(true);
     this.menu.main(this.progress, this.lesson, {
-      play: () => { this.menu.close(); this.setShellMode(false); this.showLessonBrief(); },
+      play: () => {
+        this.mode = "daily";
+        this.activeLesson = this.lesson;
+        this.menu.close();
+        this.setShellMode(false);
+        this.showLessonBrief();
+      },
+      free: () => this.openFreePlay(),
       character: () => this.openCharacterSelect({}),
       location: () => this.openLocationSelect(),
       progress: () => this.screens.progressScreen(this.progress, this.manifest),
@@ -125,6 +159,39 @@ export class Game {
     });
   }
 
+  /**
+   * Travel map opened from the HUD while playing. Unlike the menu's location
+   * sheet this does NOT enter shell mode: closing it returns you straight to
+   * the world you were standing in, not to the main menu.
+   */
+  openTravelMap() {
+    // Check the DOM, not just the flag. If anything else closed the menu while
+    // the map was up, a stale flag would wedge this button shut for good.
+    if (this.mapOpen && this.menu.isOpen) return;
+    this.mapOpen = true;
+    this.player.freeze(true);      // stop walking blind behind a full-screen sheet
+    this.input.setEnabled(false);
+
+    const close = () => this.closeTravelMap();
+    this.menu.locationSelect(this.progress, this.manifest, this.location.id,
+      this.lesson && this.lesson.location, {
+        onBack: close,
+        onTravel: (id) => {
+          if (id !== this.location.id) this.travel(id);
+          close();
+        }
+      });
+  }
+
+  closeTravelMap() {
+    if (!this.mapOpen) return;
+    this.mapOpen = false;
+    this.menu.close();
+    this.player.freeze(false);
+    this.input.setEnabled(true);
+    this.lastTime = performance.now();   // do not bank the open time as one frame
+  }
+
   openLocationSelect() {
     this.setShellMode(true);
     this.menu.locationSelect(this.progress, this.manifest, this.location.id,
@@ -138,7 +205,18 @@ export class Game {
       });
   }
 
-  openSettings() {
+  openSettings({ returnToPause = false } = {}) {
+    // Closing Settings from the pause menu must return to the pause menu,
+    // not drop the player back into a running lesson.
+    if (returnToPause) {
+      this.screens.onClose = () => {
+        // Not if Settings sent us somewhere else entirely (a progress reset
+        // jumps to character select, which owns the screen from then on).
+        if (this.shellMode) return;
+        this.paused = false;
+        this.pauseGame();
+      };
+    }
     this.screens.settings(this.progress, SpeechInput.isSupported(), {
       onChange: (key, value) => {
         this.progress.setSetting(key, value);
@@ -163,28 +241,154 @@ export class Game {
     });
   }
 
-  /** Dress the 3D student in the chosen character's colours, and the HUD too. */
+  /* ---------------------------------------------------------------- pause */
+
+  togglePause() {
+    if (this.shellMode) return;              // already in the menu shell
+    this.paused ? this.resumeGame() : this.pauseGame();
+  }
+
+  pauseGame() {
+    if (this.paused || this.shellMode || this.screens.isOpen || this.menu.isOpen) return;
+    this.paused = true;
+
+    this.player.freeze(true);
+    this.input.setEnabled(false);
+    this.speechOut.pause();                  // holds the line, does not cancel it
+    this.speechIn.abort();
+    this.ui.lockAnswering(true);
+    this.ui.setMicState("idle");
+
+    this.screens.pause({
+      topic: this.activeLesson && this.activeLesson.topic,
+      day: this.activeLesson && this.activeLesson.day,
+      step: this.engine.studentTurnIndex + 1,
+      total: this.engine.studentTurnCount,
+      inConversation: this.inConversation
+    }, {
+      onResume: () => this.resumeGame(),
+      onRestart: () => this.restartConversation(),
+      onSettings: () => this.openSettings({ returnToPause: true }),
+      onQuit: () => this.confirmQuit()
+    });
+  }
+
+  resumeGame() {
+    if (!this.paused) return;
+    this.paused = false;
+    this.screens.hide();
+
+    this.player.freeze(false);
+    this.input.setEnabled(true);
+    this.speechOut.resume();
+    // Only hand the controls back if the engine is actually waiting for an answer.
+    this.ui.lockAnswering(!(this.inConversation && this.engine.awaiting));
+    this.lastTime = performance.now();       // do not bank the paused time as one frame
+  }
+
+  restartConversation() {
+    this.paused = false;
+    this.screens.hide();
+    this.engine.abandon();
+    this.endConversationUi();
+    this.startConversation();
+  }
+
+  confirmQuit() {
+    if (!this.inConversation) return this.quitToMenu();
+    this.screens.confirm(
+      "You are in the middle of a conversation. Your score for it will not be saved.",
+      {
+        title: "Quit this lesson?",
+        yes: "Quit to menu",
+        no: "Keep playing",
+        onYes: () => this.quitToMenu(),
+        onNo: () => { this.paused = false; this.pauseGame(); }
+      });
+  }
+
+  quitToMenu() {
+    this.paused = false;
+    this.screens.hide();
+    if (this.inConversation) {
+      this.engine.abandon();
+      this.endConversationUi();
+      if (this.npc) this.npc.setMarker("quest");
+    }
+    this.ui.setQuest(null);
+    this.openMenu();
+  }
+
+  /**
+   * Dress the 3D student as the chosen character, and update the HUD portrait.
+   * The .glb model loads in the background; the procedural body is shown until
+   * it arrives, and stays if the download fails.
+   */
   applyChosenCharacter() {
     const hero = this.menu.characterById(this.progress.data.characterId);
     this.player.setAppearance(hero.colors);
     this.ui.setAvatar(ART + hero.art);
+
+    if (!hero.model) return;
+    this.player.character.expectModel();
+    this.models.get(hero.model).then((model) => {
+      // The player may have changed character again while this downloaded.
+      const current = this.menu.characterById(this.progress.data.characterId);
+      if (current.model !== hero.model) return;
+      if (model) this.player.character.useModel(model);
+      else this.player.character.cancelExpectedModel();
+    });
   }
 
   async loadTodaysLesson() {
     this.lessonEntry = await this.loader.nextLessonEntry(this.progress);
     this.lesson = await this.loader.loadLesson(this.lessonEntry);
+    this.mode = "daily";
+    this.activeLesson = this.lesson;
   }
 
-  showLessonBrief() {
-    this.screens.lessonBrief(this.lesson, this.progress.lessonRecord(this.lesson.lesson_id), {
+  showLessonBrief(lesson = this.lesson) {
+    this.screens.lessonBrief(lesson, this.progress.lessonRecord(lesson.lesson_id), {
       onGo: () => {
-        if (this.location.id !== this.lesson.location) this.enterLocation(this.lesson.location);
-        const meta = LOCATION_META[this.lesson.location];
-        const who = (this.lesson.characters && this.lesson.characters[0]) || {};
-        this.ui.setQuest("Find " + (who.name || "your teacher") + " at the " + (meta ? meta.label : this.lesson.location) + " and talk.", "0/1");
+        if (this.location.id !== lesson.location) this.enterLocation(lesson.location);
+        const meta = LOCATION_META[lesson.location];
+        const who = (lesson.characters && lesson.characters[0]) || {};
+        const where = meta ? meta.label : lesson.location;
+        this.ui.setQuest((this.mode === "free" ? "Practice: talk to " : "Find ") +
+          (who.name || "your teacher") + " at the " + where + ".", "0/1");
         this.ui.toast("Walk up to " + (who.name || "them") + " and press Talk", "info", 3800);
       }
     });
+  }
+
+  /* ------------------------------------------------------------ free play */
+
+  openFreePlay() {
+    this.setShellMode(true);
+    this.menu.locationSelect(this.progress, this.manifest, this.location.id, null, {
+      free: true,
+      onBack: () => this.openMenu(),
+      onTravel: (id) => this.startFreePlay(id)
+    });
+  }
+
+  /** Pick any place and practise the conversation set there, in any order. */
+  async startFreePlay(id) {
+    const entry = this.manifest.lessons
+      .filter((l) => l.location === id)
+      .sort((a, b) => a.day - b.day)[0];
+
+    if (!entry) {
+      this.ui.toast("There is no conversation here yet", "warn");
+      return;
+    }
+
+    this.mode = "free";
+    this.activeLesson = await this.loader.loadLesson(entry);
+    this.menu.close();
+    this.setShellMode(false);
+    this.enterLocation(id, { silent: true });
+    this.showLessonBrief(this.activeLesson);
   }
 
   /* ------------------------------------------------------------- location */
@@ -214,15 +418,28 @@ export class Game {
 
   spawnNpc() {
     const spot = this.location.npcSpots[0];
-    const isLessonHere = this.lesson && this.lesson.location === this.location.id;
+    const isLessonHere = this.activeLesson && this.activeLesson.location === this.location.id;
 
-    const def = isLessonHere && this.lesson.characters && this.lesson.characters[0]
-      ? this.lesson.characters[0]
+    const def = isLessonHere && this.activeLesson.characters && this.activeLesson.characters[0]
+      ? this.activeLesson.characters[0]
       : { id: "guide", name: "Ravi", role: "friend" };
 
     this.npc = new NPC({ id: def.id, name: def.name, role: def.role, spot });
     this.npc.setMarker(isLessonHere ? "quest" : "talk");
     this.scene.scene.add(this.npc.group);
+
+    // Every NPC gets a real 3D model. The placeholder body is hidden up front
+    // so it never flashes on screen, and only comes back if the load fails.
+    const npcModel = NPC_MODELS[def.role] || NPC_MODEL_FALLBACK;
+    if (npcModel) {
+      const spawned = this.npc;
+      spawned.character.expectModel();
+      this.models.get(npcModel).then((model) => {
+        if (this.npc !== spawned) return;
+        if (model) this.npc.character.useModel(model);
+        else this.npc.character.cancelExpectedModel();
+      });
+    }
   }
 
   travel(id) {
@@ -243,7 +460,8 @@ export class Game {
       if (this.screens.isOpen || this.menu.isOpen) return;
       if (name === "interact") this.tryInteract();
       if (name === "mic" && this.inConversation) this.startListening();
-      if (name === "cancel" && this.inConversation) this.leaveConversation();
+      // Escape pauses. Resuming is handled by the pause screen's own binding.
+      if (name === "cancel") this.togglePause();
     });
 
     const guard = (fn) => () => {
@@ -251,8 +469,9 @@ export class Game {
       fn();
     };
 
-    document.querySelector("#btn-menu").addEventListener("click", guard(() => this.openMenu()));
-    document.querySelector("#btn-map").addEventListener("click", guard(() => this.openLocationSelect()));
+    // Menu is NOT guarded: pausing mid-conversation is the whole point.
+    document.querySelector("#btn-menu").addEventListener("click", () => this.togglePause());
+    document.querySelector("#btn-map").addEventListener("click", guard(() => this.openTravelMap()));
     document.querySelector("#btn-lesson").addEventListener("click", guard(() => this.showLessonBrief()));
     document.querySelector("#btn-progress").addEventListener("click", () =>
       this.screens.progressScreen(this.progress, this.manifest));
@@ -313,9 +532,9 @@ export class Game {
     if (this.inConversation || this.screens.isOpen) return;
     if (!this.npc || !this.npc.inRange) return;
 
-    if (!this.lesson || this.lesson.location !== this.location.id) {
-      const meta = LOCATION_META[this.lesson.location];
-      this.ui.toast("Today's lesson is at the " + (meta ? meta.label : this.lesson.location) + ". Open the map to travel.", "info", 4200);
+    if (!this.activeLesson || this.activeLesson.location !== this.location.id) {
+      const meta = LOCATION_META[this.activeLesson.location];
+      this.ui.toast("Today's lesson is at the " + (meta ? meta.label : this.activeLesson.location) + ". Open the map to travel.", "info", 4200);
       return;
     }
     this.startConversation();
@@ -333,7 +552,7 @@ export class Game {
     this.ui.setControlsVisible(false);
     this.ui.showInteract(false);
     this.ui.openConversation();
-    this.engine.start(this.lesson);
+    this.engine.start(this.activeLesson);
   }
 
   answer(text, mode, confidence) {
@@ -375,7 +594,12 @@ export class Game {
   }
 
   async finishLesson(summary) {
-    const award = this.progress.recordLesson(summary);
+    // Free Play awards reduced XP and never advances the daily progression.
+    const practice = this.mode === "free";
+    const award = practice
+      ? this.progress.recordPractice(summary)
+      : this.progress.recordLesson(summary);
+
     this.endConversationUi();
     this.ui.renderHud(this.progress);
     this.ui.setQuest(null);
@@ -384,6 +608,7 @@ export class Game {
     this.screens.results(summary, award, this.progress, {
       onAgain: () => this.startConversationAfterReset(),
       onMap: async () => {
+        if (practice) { this.openFreePlay(); return; }
         await this.loadTodaysLesson();
         this.openMenu();
       }
@@ -402,6 +627,14 @@ export class Game {
     const dt = Math.min(0.05, (now - this.lastTime) / 1000);
     this.lastTime = now;
 
+    // Paused: hold the frame exactly as it was. No movement, no animation, no
+    // proximity checks - so nothing can change behind the pause screen.
+    if (this.paused) {
+      this.scene.render();
+      requestAnimationFrame(() => this.loop());
+      return;
+    }
+
     // Title menu: orbit the location as a living backdrop, nothing else runs.
     if (this.shellMode) {
       if (this.npc) this.npc.character.update(dt);
@@ -418,7 +651,7 @@ export class Game {
       const entered = this.npc.update(dt, this.player.group.position);
       if (!this.inConversation) {
         this.ui.showInteract(this.npc.inRange, "Talk");
-        if (entered && this.lesson.location === this.location.id) {
+        if (entered && this.activeLesson && this.activeLesson.location === this.location.id) {
           this.ui.toast("Press Talk to start the conversation", "info", 2200);
         }
       }
