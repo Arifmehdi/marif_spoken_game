@@ -29,6 +29,49 @@ const TYPES = {
 
 const server = http.createServer((req, res) => {
   const url = decodeURIComponent(req.url.split("?")[0]);
+
+  /**
+   * Dev-only write endpoint, used by tools/build-character.html.
+   *
+   * Merging Mixamo FBX animation exports into one .glb needs three.js's FBX
+   * loader and GLTF exporter, which only run in a browser. The build page does
+   * the work and POSTs the result here so it lands on disk.
+   *
+   * Writes are confined to the project directory and to .glb files.
+   */
+  /** Dev-only directory listing, so the build page can discover source files. */
+  if (req.method === "GET" && url === "/__list") {
+    const dir = new URL(req.url, "http://x").searchParams.get("dir") || "";
+    const target = path.join(ROOT, dir);
+    if (!target.startsWith(ROOT) || !fs.existsSync(target)) {
+      res.writeHead(404).end("[]");
+      return;
+    }
+    const files = fs.readdirSync(target, { withFileTypes: true })
+      .filter((e) => e.isFile())
+      .map((e) => e.name);
+    res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify(files));
+    return;
+  }
+
+  if (req.method === "POST" && url === "/__save") {
+    const name = String(req.headers["x-filename"] || "");
+    const target = path.join(ROOT, name);
+    if (!name || !target.startsWith(ROOT) || !name.endsWith(".glb")) {
+      res.writeHead(400).end("refused: must be a .glb inside the project");
+      return;
+    }
+    const chunks = [];
+    req.on("data", (c) => chunks.push(c));
+    req.on("end", () => {
+      const data = Buffer.concat(chunks);
+      fs.mkdirSync(path.dirname(target), { recursive: true });
+      fs.writeFileSync(target, data);
+      console.log("  saved " + name + "  (" + (data.length / 1048576).toFixed(2) + " MB)");
+      res.writeHead(200, { "Content-Type": "text/plain" }).end("saved " + data.length);
+    });
+    return;
+  }
   let target = path.join(ROOT, url === "/" ? "index.html" : url);
 
   // Never serve outside the project directory.

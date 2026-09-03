@@ -331,18 +331,26 @@ export class Screens {
       '<h2 class="screen-title">Settings</h2>' +
       '<label class="row-toggle"><span>NPC voice</span>' +
         '<input type="checkbox" id="set-voice"' + (s.voice ? " checked" : "") + "></label>" +
+      '<label class="row-toggle"><span>Sound effects</span>' +
+        '<input type="checkbox" id="set-sound"' + (s.sound !== false ? " checked" : "") + "></label>" +
       '<label class="field"><span>Speech accent</span><select id="set-lang">' +
         langs.map(([v, l]) => '<option value="' + v + '"' + (s.lang === v ? " selected" : "") + ">" + l + "</option>").join("") +
       "</select></label>" +
       '<p class="screen-note">' + (speechSupported
         ? "Microphone input is available in this browser."
         : "This browser cannot listen. Answers can still be typed.") + "</p>" +
+      // The hospital ward is Creative Commons Attribution: crediting its author
+      // is a condition of the licence, not a courtesy, so it ships in the game
+      // and not only in the repository's README.
+      '<p class="screen-credit">Hospital ward model: &ldquo;Isometric Hospital Room&rdquo; ' +
+        "by graphyTV, Blend Swap, CC&nbsp;BY&nbsp;3.0.</p>" +
       '<div class="screen-actions">' +
         '<button class="btn btn-danger" id="set-reset">Reset Progress</button>' +
         '<button class="btn btn-primary" id="set-close">Done</button>' +
       "</div>");
 
     card.querySelector("#set-voice").addEventListener("change", (e) => onChange("voice", e.target.checked));
+    card.querySelector("#set-sound").addEventListener("change", (e) => onChange("sound", e.target.checked));
     card.querySelector("#set-lang").addEventListener("change", (e) => onChange("lang", e.target.value));
     card.querySelector("#set-close").addEventListener("click", () => this.hide());
     card.querySelector("#set-reset").addEventListener("click", () => {

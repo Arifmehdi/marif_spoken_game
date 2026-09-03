@@ -5,12 +5,13 @@
  * the JSON it is handed and emits events. The UI listens; the 3D world listens.
  * That separation is requirement 11 of the specification.
  *
- *   engine.on("npcLine",       ({ text, role, name }) => ...)
+ *   engine.on("npcLine",       ({ text, role, name, gender }) => ...)
  *   engine.on("studentPrompt", ({ prompt, hint, index, total }) => ...)
  *   engine.on("feedback",      (result) => ...)
  *   engine.on("finished",      (summary) => ...)
  */
 import { LessonLoader } from "./LessonLoader.js";
+import { npcGender } from "../world/Casting.js";
 
 const CORRECT_THRESHOLD = 75;   // what counts as a "correct response" in the tally
 const RETRY_BELOW = 50;         // offer one retry when an answer is this weak
@@ -100,8 +101,9 @@ export class ConversationEngine {
     }
 
     const character = this.characterFor(turn.speaker);
-    this.emit("npcLine", { text: turn.text, role: character.role, name: character.name, id: character.id });
-    await this.speech.speak(turn.text, character.role);
+    const gender = npcGender(character);
+    this.emit("npcLine", { text: turn.text, role: character.role, name: character.name, id: character.id, gender });
+    await this.speech.speak(turn.text, character.role, gender);
     if (!this.active) return;
     await this.advance();
   }

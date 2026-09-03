@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="css/popup.css" />
 <link rel="stylesheet" href="css/pause.css" />
 <link rel="stylesheet" href="css/run.css" />
+<link rel="stylesheet" href="css/mobile.css" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🎤</text></svg>" />
 <script type="importmap">
 {
@@ -52,6 +53,7 @@
       <button class="rail-btn" id="btn-lesson"><img src="spoken_game/icons/book.png" alt="" /><small>Lesson</small></button>
       <button class="rail-btn" id="btn-map"><img src="spoken_game/icons/map.png" alt="" /><small>Map</small></button>
       <button class="rail-btn" id="btn-progress"><img src="spoken_game/icons/cup.png" alt="" /><small>Progress</small></button>
+      <button class="rail-btn" id="btn-fullscreen"><span>⛶</span><small>Full</small></button>
       <button class="rail-btn" id="btn-settings"><span>⚙️</span><small>Settings</small></button>
     </div>
 
@@ -102,6 +104,16 @@
   <div id="toast"></div>
   <div id="menu-root" class="hidden"></div>
   <div id="screen-root" class="hidden"></div>
+
+  <!-- portrait phones: this is a landscape game -->
+  <div id="rotate-gate" class="hidden">
+    <div class="rotate-inner">
+      <div class="rotate-phone"></div>
+      <h2>Turn your phone sideways</h2>
+      <p>This game is played in landscape, so you can see the whole room and walk around.</p>
+      <button id="rotate-fullscreen">Play Fullscreen</button>
+    </div>
+  </div>
 
   <div id="boot">
     <div class="boot-inner">

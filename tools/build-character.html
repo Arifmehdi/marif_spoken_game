@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Build characters — merge animation FBX into GLB</title>
+<script type="importmap">
+{ "imports": { "three": "../js/vendor/three.module.js" } }
+</script>
+<style>
+  body { font-family: "Segoe UI", system-ui, sans-serif; background:#12203a; color:#e2e8f0;
+         margin:0; padding:28px; line-height:1.5; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  p.sub { color:#94a3b8; margin:0 0 20px; font-size:14px; max-width:70ch; }
+  button { border:0; border-radius:12px; padding:13px 26px; font-size:15px; font-weight:700;
+           background:linear-gradient(160deg,#4ade80,#16a34a); color:#fff; cursor:pointer; }
+  button:disabled { background:#475569; cursor:not-allowed; }
+  #log { margin-top:20px; background:#0a1122; border-radius:12px; padding:16px;
+         font-family: ui-monospace, Consolas, monospace; font-size:13px; white-space:pre-wrap; }
+  .ok { color:#4ade80; } .warn { color:#fbbf24; } .err { color:#f87171; } .dim { color:#64748b; }
+</style>
+</head>
+<body>
+
+<h1>Merge animation FBX files into one GLB per character</h1>
+<p class="sub">
+  Mixamo exports one FBX per animation, each ~7 MB with its clip named
+  “mixamo.com”. This finds every character folder, matches each file to a game
+  state by its name (so “Neutral Idle”, “Standard Run” and “Walk” all work),
+  merges them onto one skeleton and writes a single .glb per character.
+</p>
+
+<button id="run">Build all characters</button>
+<div id="log">Ready.</div>
+
+<script type="module">
+import * as THREE from "three";
+import { FBXLoader } from "../js/vendor/FBXLoader.js";
+import { GLTFExporter } from "../js/vendor/GLTFExporter.js";
+
+const CHARACTERS = [
+  { folder: "spoken_game/character/main_character/boy_1_animation",   out: "boy_1_merged.glb" },
+  { folder: "spoken_game/character/main_character/boy_2_animation",   out: "boy_2_merged.glb" },
+  { folder: "spoken_game/character/main_character/girl_1_animation",  out: "girl_1_merged.glb" },
+  { folder: "spoken_game/character/main_character/girl_2_animations", out: "girl_2_merged.glb" },
+  // NPC teachers: only Breathing Idle + Talking, which is all a standing
+  // character needs. Missing walk/run simply fall back to idle.
+  { folder: "spoken_game/character/teacher_or_other_character/new_male_teacher_1",
+    out: "male_teacher_1_merged.glb", dir: "spoken_game/character/teacher_or_other_character/" },
+  { folder: "spoken_game/character/teacher_or_other_character/new_male_teacher_2",
+    out: "male_teacher_2_merged.glb", dir: "spoken_game/character/teacher_or_other_character/" }
+];
+const OUT_DIR = "spoken_game/character/main_character/";
+
+/**
+ * Which game state a source file drives, matched on the filename. Checked in
+ * order, so "idle" wins before "run" would ever see "Neutral Idle".
+ */
+const MATCHERS = [
+  { state: "idle", test: /idle|neutral|stand(?!ard)/i },
+  { state: "walk", test: /walk/i },
+  { state: "run",  test: /run|jog|sprint/i },
+  { state: "talk", test: /talk|speak/i }
+];
+
+const logEl = document.getElementById("log");
+const log = (msg, cls = "") => {
+  logEl.innerHTML += "\n" + (cls ? '<span class="' + cls + '">' + msg + "</span>" : msg);
+  logEl.scrollTop = logEl.scrollHeight;
+};
+
+const loader = new FBXLoader();
+const loadFbx = (url) => new Promise((res, rej) => loader.load(url, res, undefined, rej));
+
+async function buildOne(character) {
+  log("\n=== " + character.out + " ===", "warn");
+
+  const listing = await fetch("/__list?dir=" + encodeURIComponent(character.folder));
+  const files = (await listing.json()).filter((f) => /\.fbx$/i.test(f));
+  if (!files.length) { log("  no .fbx files found", "err"); return false; }
+
+  // Pair each state with the first file whose name matches it.
+  const chosen = [];
+  for (const m of MATCHERS) {
+    const file = files.find((f) => m.test.test(f) && !chosen.some((c) => c.file === f));
+    if (file) chosen.push({ state: m.state, file });
+    else log("  no file matches \"" + m.state + "\"", "warn");
+  }
+  if (!chosen.length) { log("  nothing matched", "err"); return false; }
+
+  let base = null;
+  const clips = [];
+
+  for (const pick of chosen) {
+    const obj = await loadFbx("../" + character.folder + "/" + encodeURIComponent(pick.file));
+    if (!obj.animations || !obj.animations.length) {
+      log("  " + pick.file + " has no animation", "err");
+      continue;
+    }
+    const clip = obj.animations[0];
+    clip.name = pick.state;                       // "mixamo.com" -> "walk" etc.
+    clips.push(clip);
+    log("  " + pick.state.padEnd(5) + " <- " + pick.file +
+        "   " + clip.duration.toFixed(2) + "s", "ok");
+
+    // The idle export supplies the mesh and skeleton; fall back to the first.
+    if (!base || pick.state === "idle") base = obj;
+  }
+
+  if (!base) { log("  no base model", "err"); return false; }
+  base.animations = clips;
+
+  let bones = 0, tris = 0;
+  base.traverse((o) => {
+    if (o.isBone) bones++;
+    if (o.isMesh && o.geometry.attributes.position) {
+      tris += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3;
+    }
+  });
+  log("  base: " + bones + " bones, " + Math.round(tris).toLocaleString() + " triangles", "dim");
+
+  const exporter = new GLTFExporter();
+  const glb = await new Promise((res, rej) =>
+    exporter.parse(base, res, rej, { binary: true, animations: clips }));
+
+  const resp = await fetch("/__save", {
+    method: "POST",
+    headers: { "X-Filename": (character.dir || OUT_DIR) + character.out, "Content-Type": "application/octet-stream" },
+    body: glb
+  });
+  if (!resp.ok) { log("  save failed: " + (await resp.text()), "err"); return false; }
+
+  log("  saved " + ((glb.byteLength || glb.length) / 1048576).toFixed(2) + " MB  " +
+      "clips: " + clips.map((c) => c.name).join(", "), "ok");
+  return true;
+}
+
+document.getElementById("run").addEventListener("click", async () => {
+  const btn = document.getElementById("run");
+  btn.disabled = true;
+  logEl.textContent = "Building…";
+  let done = 0;
+  try {
+    for (const c of CHARACTERS) {
+      if (await buildOne(c)) done++;
+    }
+    log("\nBUILT " + done + " / " + CHARACTERS.length + " characters", done === CHARACTERS.length ? "ok" : "warn");
+    log("Now run:  npm run optimize", "warn");
+  } catch (err) {
+    log("\nFAILED: " + (err && err.message ? err.message : err), "err");
+    console.error(err);
+  } finally {
+    btn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>

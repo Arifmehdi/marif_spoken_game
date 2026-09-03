@@ -288,6 +288,8 @@ html, body {
 .screen-title { margin: 0 0 6px; font-size: clamp(22px, 4.4vw, 30px); font-weight: 800; text-align: center; }
 .screen-sub { margin: 0 0 14px; text-align: center; color: #64748b; font-weight: 600; font-size: 15px; }
 .screen-note { font-size: 12.5px; color: #94a3b8; text-align: center; margin: 12px 0 0; font-weight: 600; }
+/* Required attribution for a CC-BY asset - quieter than a note, but present. */
+.screen-credit { font-size: 11px; color: #64748b; text-align: center; margin: 10px 0 0; font-weight: 600; line-height: 1.45; }
 .screen-actions { display: flex; gap: 10px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
 .section-h { margin: 20px 0 8px; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: #94a3b8; }
 

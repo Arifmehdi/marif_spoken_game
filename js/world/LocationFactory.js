@@ -11,6 +11,42 @@ import * as THREE from "three";
 
 const M = (color) => new THREE.MeshLambertMaterial({ color: new THREE.Color(color) });
 
+/**
+ * Optional ModelLibrary, handed in by buildLocation(). Kept module-scoped so
+ * the nine builders keep their one-argument signature - only the prop helpers
+ * below ever read it, and they all cope with it being null.
+ */
+let props = null;
+
+/**
+ * Swap a real model in for a procedural stand-in, in place.
+ *
+ * Every prop is built procedurally first, so a location is complete the instant
+ * it is created and never waits on a download. If the model is already cached
+ * the swap happens in the same frame; if not, it happens when the file arrives,
+ * and if the file is missing the primitive version simply stays. That is why
+ * `holder` is a group rather than the meshes themselves.
+ */
+function upgradeProp(key, holder, scale) {
+  if (!props) return;
+
+  const swap = (model) => {
+    // The player may have left before the download finished.
+    if (!model || !holder.parent) return;
+    [...holder.children].forEach((child) => { holder.remove(child); releaseTree(child); });
+    model.scale.setScalar(scale);
+    // Geometry and textures belong to ModelLibrary's cache and are shared with
+    // every other copy in the world - leaving this location must not free them.
+    model.userData.shared = true;
+    model.traverse((o) => { o.receiveShadow = true; });
+    holder.add(model);
+  };
+
+  const cached = props.instance(key);
+  if (cached) swap(cached);
+  else props.get(key).then(swap);
+}
+
 function box(w, h, d, color, x, y, z, group, opts = {}) {
   const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), opts.material || M(color));
   mesh.position.set(x, y, z);
@@ -32,9 +68,24 @@ function cyl(rt, rb, h, color, x, y, z, group, seg = 12) {
 
 /* --------------------------------------------------------------- shared */
 
+/**
+ * How far the floor and side walls run PAST the play area on the open side.
+ *
+ * The camera sits 8.2 behind the player and looks down at it. With the player
+ * at the front of the play area the bottom of the frame reaches 3.17 further
+ * than the floor used to, so a band of empty sky showed under the room
+ * - the same room read as solid the moment the player stepped back. This is
+ * scenery only: `bounds` still stops the player at the original edge.
+ *
+ * Only the +Z side gets it. Extending the floor backwards would put ground
+ * behind the back wall, which this camera sees straight over the top of.
+ */
+const FLOOR_APRON = 3.8;
+
 function floor(group, w, d, color) {
-  const f = new THREE.Mesh(new THREE.PlaneGeometry(w, d), M(color));
+  const f = new THREE.Mesh(new THREE.PlaneGeometry(w, d + FLOOR_APRON), M(color));
   f.rotation.x = -Math.PI / 2;
+  f.position.z = FLOOR_APRON / 2;
   f.receiveShadow = true;
   group.add(f);
   return f;
@@ -42,13 +93,17 @@ function floor(group, w, d, color) {
 
 function walls(group, w, d, color, h = 3.2) {
   const half = 0.1;
+  // The side walls run the length of the floor, apron included, so the extra
+  // ground in front is framed as part of the room instead of jutting out.
+  const deep = d + FLOOR_APRON;
+  const mid = FLOOR_APRON / 2;
   box(w, h, half * 2, color, 0, h / 2, -d / 2, group, { castShadow: false });
-  box(half * 2, h, d, color, -w / 2, h / 2, 0, group, { castShadow: false });
-  box(half * 2, h, d, color, w / 2, h / 2, 0, group, { castShadow: false });
+  box(half * 2, h, deep, color, -w / 2, h / 2, mid, group, { castShadow: false });
+  box(half * 2, h, deep, color, w / 2, h / 2, mid, group, { castShadow: false });
   return [
     { x: 0, z: -d / 2, w, d: 0.4 },
-    { x: -w / 2, z: 0, w: 0.4, d },
-    { x: w / 2, z: 0, w: 0.4, d }
+    { x: -w / 2, z: mid, w: 0.4, d: deep },
+    { x: w / 2, z: mid, w: 0.4, d: deep }
   ];
 }
 
@@ -71,7 +126,13 @@ function chair(group, x, z, rotY = 0, color = "#3b6ea5") {
   return { x, z, w: 0.5, d: 0.5 };
 }
 
-function plant(group, x, z, scale = 1) {
+/**
+ * `model` names a ModelLibrary prop to use instead of the primitive leaves -
+ * pass null (the default) to keep the cheap procedural version. Every indoor
+ * location calls this, so the real model is opted into per call site rather
+ * than applied everywhere at once.
+ */
+function plant(group, x, z, scale = 1, model = null) {
   const g = new THREE.Group();
   g.position.set(x, 0, z);
   g.scale.setScalar(scale);
@@ -85,6 +146,7 @@ function plant(group, x, z, scale = 1) {
     g.add(leaf);
   }
   group.add(g);
+  if (model) upgradeProp(model, g, scale);
   return { x, z, w: 0.5, d: 0.5 };
 }
 
@@ -104,7 +166,127 @@ function tree(group, x, z, scale = 1) {
   return { x, z, w: 0.7 * scale, d: 0.7 * scale };
 }
 
-function shelf(group, x, z, rotY = 0, w = 1.6) {
+/**
+ * The first aid cabinet. The painted box stays as the stand-in.
+ *
+ * The model's door faces its local +Z, so a quarter turn points it away from
+ * the wall and into the room.
+ */
+function cabinet(group, x, z, rotY = 0) {
+  const g = new THREE.Group();
+  g.position.set(x, 0, z);
+  g.rotation.y = rotY;
+  box(0.9, 1.7, 0.45, "#ffffff", 0, 0.85, 0, g);
+  group.add(g);
+  upgradeProp("cabinet", g, 1);
+  return { x, z, w: rotY ? 0.65 : 0.75, d: rotY ? 0.75 : 0.65 };
+}
+
+/**
+ * The living room sofa. The painted boxes stay as the stand-in, in the same
+ * place and the same colours, so the swap changes the shape and nothing else.
+ *
+ * The model's back panel is on its local -Z, which is the way the painted one
+ * faced too, so it needs no turning.
+ */
+function sofa(group, x, z) {
+  const g = new THREE.Group();
+  g.position.set(x, 0, z);
+  box(2.8, 0.5, 1.0, "#4f7a6f", 0, 0.3, 0, g);
+  box(2.8, 0.7, 0.28, "#5c8a7e", 0, 0.72, -0.42, g);
+  box(0.28, 0.6, 1.0, "#5c8a7e", -1.36, 0.62, 0, g);
+  box(0.28, 0.6, 1.0, "#5c8a7e", 1.36, 0.62, 0, g);
+  group.add(g);
+  upgradeProp("sofa", g, 1);
+  return { x, z, w: 2.7, d: 1.3 };
+}
+
+/**
+ * The hospital ward: two beds, their curtain rails and the bedside equipment.
+ * The painted beds stay as the stand-in.
+ *
+ * It sits BEHIND the talking spot, further from the camera than the NPC, so
+ * nothing of it can come between the two during a conversation.
+ */
+function ward(group, x, z) {
+  const g = new THREE.Group();
+  g.position.set(x, 0, z);
+  [[-1.5, 0], [1.5, 0]].forEach(([bx, bz]) => {
+    box(1.0, 0.45, 2.1, "#c8d8e0", bx, 0.42, bz, g);
+    box(1.05, 0.18, 2.15, "#ffffff", bx, 0.72, bz, g);
+    box(1.0, 0.16, 0.4, "#eef4f7", bx, 0.86, bz - 0.85, g);
+    box(1.1, 0.5, 0.08, "#8fa8b4", bx, 0.65, bz + 1.05, g);
+  });
+  group.add(g);
+  upgradeProp("ward", g, 1);
+  return { x, z, w: 6.6, d: 4.4 };
+}
+
+/**
+ * The park fountain. The stacked cylinders are the stand-in; the real model is
+ * the client's fountain.fbx, a tiered marble basin with a glow crystal on top.
+ *
+ * The collider covers the basin only. It is 2.79 across, but a player stopped a
+ * metre and a half out would never get close enough for it to read as an
+ * object they are standing beside.
+ */
+function fountain(group, x, z) {
+  const g = new THREE.Group();
+  g.position.set(x, 0, z);
+  cyl(0.5, 0.6, 0.7, "#c8c8d0", 0, 0.35, 0, g, 14);
+  cyl(0.18, 0.22, 1.3, "#c8c8d0", 0, 1.0, 0, g, 10);
+  group.add(g);
+  upgradeProp("fountain", g, 1);
+  return { x, z, w: 1.9, d: 1.9 };
+}
+
+/**
+ * The shelter at the stop. The painted version stays as the stand-in; the real
+ * model is the client's bus_stop.blend - posts, roof, back glass, bench and ad
+ * panel - with the street scene it was modelled in left behind.
+ */
+function busShelter(group, x, z, rotY = 0) {
+  const g = new THREE.Group();
+  g.position.set(x, 0, z);
+  g.rotation.y = rotY;
+  box(5.0, 0.15, 2.0, "#5a6570", 0, 2.6, 0, g);
+  cyl(0.09, 0.09, 2.6, "#5a6570", -2.3, 1.3, 0, g, 8);
+  cyl(0.09, 0.09, 2.6, "#5a6570", 2.3, 1.3, 0, g, 8);
+  box(5.0, 1.4, 0.08, "#9fd4e0", 0, 1.5, 0.75, g, { castShadow: false });
+  box(3.4, 0.12, 0.45, "#a4703c", 0, 0.5, 0.4, g);
+  box(3.4, 0.5, 0.1, "#a4703c", 0, 0.75, 0.62, g);
+  group.add(g);
+  upgradeProp("busStop", g, 1);
+  return { x, z, w: 4.7, d: 2.2 };
+}
+
+/**
+ * The bus at the stop. The painted box version stays as the stand-in, built to
+ * the same 8.4 x 2.3 x 2.5 the real bus.obj measures, so the swap changes the
+ * look and not the layout.
+ */
+function busVehicle(group, x, z) {
+  const g = new THREE.Group();
+  g.position.set(x, 0, z);
+  box(8.4, 2.3, 2.5, "#2f6fc4", 0, 1.5, 0, g);
+  box(8.5, 0.5, 2.55, "#1f4f92", 0, 0.5, 0, g);
+  for (let i = 0; i < 5; i++) box(1.2, 0.9, 0.06, "#bfe4ff", -3.2 + i * 1.6, 1.9, 1.28, g, { castShadow: false });
+  box(1.0, 1.5, 0.06, "#bfe4ff", 4.22, 1.5, 0.7, g, { castShadow: false });
+  [[-2.7, 1.25], [2.7, 1.25], [-2.7, -1.25], [2.7, -1.25]].forEach(([bx, bz]) => {
+    const wheel = cyl(0.55, 0.55, 0.35, "#22252b", bx, 0.55, bz, g, 14);
+    wheel.rotation.z = Math.PI / 2;
+  });
+  group.add(g);
+  upgradeProp("bus", g, 1);
+  return { x, z, w: 9.1, d: 2.8 };
+}
+
+/**
+ * `model` names a ModelLibrary prop to use instead of the painted boxes. The
+ * real bookshelf is 1.06 wide once scaled, not `w`, so the collider follows the
+ * model - otherwise the player is stopped by a metre of empty floor.
+ */
+function shelf(group, x, z, rotY = 0, w = 1.6, model = null) {
   const g = new THREE.Group();
   g.position.set(x, 0, z);
   g.rotation.y = rotY;
@@ -116,23 +298,85 @@ function shelf(group, x, z, rotY = 0, w = 1.6) {
     }
   }
   group.add(g);
-  return { x, z, w: rotY ? 0.5 : w, d: rotY ? w : 0.5 };
+
+  const span = model ? PROP_FOOTPRINT[model] : null;
+  if (model) upgradeProp(model, g, 1);
+  const across = span ? span.w : w;
+  const deep = span ? span.d : 0.5;
+  return { x, z, w: rotY ? deep : across, d: rotY ? across : deep };
 }
 
-function signBoard(group, text, x, y, z, color = "#2f6f4f", w = 2.4) {
+/** Ground footprint of the .glb props, in world units, for colliders. */
+const PROP_FOOTPRINT = {
+  bookshelf: { w: 1.06, d: 0.45 }
+};
+
+/**
+ * A flat sign drawn onto a canvas texture.
+ *
+ * The type size is FITTED, not fixed. At a hard-coded 64px "Today's Lesson" ran
+ * wider than the canvas and lost a letter off each end ("oday's Lessor"), and
+ * "Home Sweet Home" and "MAIN STREET" were on the same edge. The font now
+ * shrinks until the string fits inside a margin, so a caller only picks a
+ * width and any wording is safe.
+ *
+ * opts.h      plane height in world units (default w / 4).
+ * opts.chalk  no painted plate - white writing straight onto whatever is
+ *             behind the plane. The classroom board needs this: a second green
+ *             rectangle sitting on the blackboard read as a sticker stuck over
+ *             it rather than as a lesson written up for the class.
+ */
+function signBoard(group, text, x, y, z, color = "#2f6f4f", w = 2.4, opts = {}) {
+  const h = opts.h || w / 4;
   const canvas = document.createElement("canvas");
-  canvas.width = 512; canvas.height = 128;
+  canvas.height = 256;                                   // texels per unit of height
+  canvas.width = Math.round(canvas.height * (w / h));
   const ctx = canvas.getContext("2d");
-  ctx.fillStyle = color;
-  ctx.fillRect(0, 0, 512, 128);
-  ctx.fillStyle = "#ffffff";
-  ctx.font = "bold 64px Verdana, sans-serif";
+
+  if (!opts.chalk) {
+    ctx.fillStyle = color;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  const margin = canvas.width * 0.07;
+  const font = (px) => "bold " + px + "px Verdana, sans-serif";
+  let size = Math.round(canvas.height * (opts.chalk ? 0.46 : 0.52));
+  ctx.font = font(size);
+  while (size > 10 && ctx.measureText(text).width > canvas.width - margin * 2) {
+    size -= 2;
+    ctx.font = font(size);
+  }
+
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText(text, 256, 68);
+  const midX = canvas.width / 2;
+  const midY = canvas.height * (opts.chalk ? 0.44 : 0.5);
+
+  if (opts.chalk) {
+    ctx.shadowColor = "rgba(255,255,255,.5)";            // chalk dust around the stroke
+    ctx.shadowBlur = 9;
+    ctx.fillStyle = "#f3f7ee";
+  } else {
+    ctx.fillStyle = "#ffffff";
+  }
+  ctx.fillText(text, midX, midY);
+
+  if (opts.chalk) {
+    ctx.shadowBlur = 0;
+    const half = ctx.measureText(text).width / 2;
+    ctx.strokeStyle = "rgba(243,247,238,.7)";
+    ctx.lineWidth = Math.max(2, size * 0.045);
+    ctx.beginPath();
+    ctx.moveTo(midX - half, canvas.height * 0.76);
+    ctx.lineTo(midX + half, canvas.height * 0.76);
+    ctx.stroke();
+  }
+
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
-  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, w / 4), new THREE.MeshBasicMaterial({ map: tex }));
+  tex.anisotropy = 4;                                    // signs are read at a steep angle
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, h),
+    new THREE.MeshBasicMaterial({ map: tex, transparent: !!opts.chalk }));
   mesh.position.set(x, y, z);
   group.add(mesh);
   return mesh;
@@ -148,7 +392,8 @@ const BUILDERS = {
 
     box(6.2, 2.2, 0.12, "#2f5d4a", 0, 1.9, -D / 2 + 0.2, group, { castShadow: false });
     box(6.6, 0.16, 0.22, "#8a5a2b", 0, 0.72, -D / 2 + 0.26, group);
-    signBoard(group, "Today's Lesson", 0, 2.6, -D / 2 + 0.28, "#2f5d4a", 4.2);
+    // Written on the board, inside its 0.8 - 3.0 span, not floating over the top.
+    signBoard(group, "Today's Lesson", 0, 2.42, -D / 2 + 0.28, null, 4.6, { h: 0.86, chalk: true });
 
     c.push(table(group, -3.6, -3.4, "#b0793f", 2.2, 0.9));
     c.push(chair(group, -3.6, -4.3, Math.PI));
@@ -161,9 +406,13 @@ const BUILDERS = {
       }
     }
 
-    c.push(shelf(group, -W / 2 + 0.6, -0.5, Math.PI / 2, 2.4));
-    c.push(plant(group, W / 2 - 0.9, -3.5));
-    c.push(plant(group, W / 2 - 0.9, 3.5));
+    // Two real bookshelves fill the wall the one painted shelf used to cover.
+    // The model's solid back panel faces its local -Z, so +PI/2 turns the open
+    // front away from the wall and into the room.
+    c.push(shelf(group, -W / 2 + 0.35, -1.1, Math.PI / 2, 1.06, "bookshelf"));
+    c.push(shelf(group, -W / 2 + 0.35,  0.1, Math.PI / 2, 1.06, "bookshelf"));
+    c.push(plant(group, W / 2 - 0.9, -3.5, 1, "plant1"));
+    c.push(plant(group, W / 2 - 0.9, 3.5, 1, "plant1"));
 
     const clock = new THREE.Mesh(new THREE.CircleGeometry(0.42, 20), M("#ffffff"));
     clock.position.set(4.6, 2.6, -D / 2 + 0.22);
@@ -189,12 +438,7 @@ const BUILDERS = {
     rug.rotation.x = -Math.PI / 2; rug.position.set(-1.5, 0.02, 0.5); rug.receiveShadow = true;
     group.add(rug);
 
-    // sofa
-    box(2.8, 0.5, 1.0, "#4f7a6f", -1.5, 0.3, -1.9, group);
-    box(2.8, 0.7, 0.28, "#5c8a7e", -1.5, 0.72, -2.32, group);
-    box(0.28, 0.6, 1.0, "#5c8a7e", -2.86, 0.62, -1.9, group);
-    box(0.28, 0.6, 1.0, "#5c8a7e", -0.14, 0.62, -1.9, group);
-    c.push({ x: -1.5, z: -2.0, w: 3.0, d: 1.4 });
+    c.push(sofa(group, -1.5, -1.9));
 
     c.push(table(group, -1.5, 0.5, "#8a5a2b", 1.5, 0.8, 0.45));
 
@@ -212,7 +456,7 @@ const BUILDERS = {
     c.push(chair(group, 1.3, 3.0, Math.PI / 2, "#8a5a2b"));
     c.push(chair(group, 3.1, 3.0, -Math.PI / 2, "#8a5a2b"));
 
-    c.push(plant(group, W / 2 - 1.0, -3.6, 1.2));
+    c.push(plant(group, W / 2 - 1.0, -3.6, 1.2, "plant1"));
     signBoard(group, "Home Sweet Home", 0, 2.5, -D / 2 + 0.22, "#a4703c", 3.2);
 
     return {
@@ -308,23 +552,18 @@ const BUILDERS = {
     box(3.9, 0.1, 1.0, "#9fd4e0", -3.4, 1.08, -D / 2 + 1.0, group);
     c.push({ x: -3.4, z: -D / 2 + 1.0, w: 4.0, d: 1.2 });
 
-    [[2.0, -2.2], [5.0, -2.2]].forEach(([x, z]) => {
-      box(1.0, 0.45, 2.1, "#c8d8e0", x, 0.42, z, group);
-      box(1.05, 0.18, 2.15, "#ffffff", x, 0.72, z, group);
-      box(1.0, 0.16, 0.4, "#eef4f7", x, 0.86, z - 0.85, group);
-      box(1.1, 0.5, 0.08, "#8fa8b4", x, 0.65, z + 1.05, group);
-      c.push({ x, z, w: 1.2, d: 2.3 });
-    });
+    c.push(ward(group, 3.5, -3.0));
 
-    box(0.9, 1.7, 0.45, "#ffffff", -W / 2 + 0.8, 0.85, 1.5, group);
-    c.push({ x: -W / 2 + 0.8, z: 1.5, w: 1.0, d: 0.6 });
+    // On the back wall rather than the side one: its door - and the red cross
+    // raised on it - faces the camera there instead of edge on.
+    c.push(cabinet(group, -W / 2 + 0.9, -D / 2 + 0.6, 0));
 
     // red cross
     box(0.9, 0.28, 0.06, "#e03b3b", 0, 2.7, -D / 2 + 0.22, group, { castShadow: false });
     box(0.28, 0.9, 0.06, "#e03b3b", 0, 2.7, -D / 2 + 0.22, group, { castShadow: false });
 
     [[-2.0, 3.4], [-0.6, 3.4], [0.8, 3.4]].forEach(([x, z]) => c.push(chair(group, x, z, Math.PI, "#7fb4c4")));
-    c.push(plant(group, W / 2 - 1.0, 3.8, 1.2));
+    c.push(plant(group, W / 2 - 1.0, 3.8, 1.2, "plant1"));
     signBoard(group, "HOSPITAL", 4.0, 2.7, -D / 2 + 0.22, "#2f7d8a", 3.2);
 
     return {
@@ -347,8 +586,7 @@ const BUILDERS = {
     const pond = new THREE.Mesh(new THREE.CircleGeometry(2.6, 28), M("#4aa8d8"));
     pond.rotation.x = -Math.PI / 2; pond.position.set(-6.0, 0.02, -3.0);
     group.add(pond);
-    cyl(0.5, 0.6, 0.7, "#c8c8d0", -6.0, 0.35, -3.0, group, 14);
-    cyl(0.18, 0.22, 1.3, "#c8c8d0", -6.0, 1.0, -3.0, group, 10);
+    c.push(fountain(group, -6.0, -3.0));
 
     [[-8, 4], [-5.5, 7], [7, 5], [8.5, -2], [-9, -7], [5, -7.5], [9, 8]].forEach(([x, z]) =>
       c.push(tree(group, x, z, 0.9 + Math.random() * 0.5)));
@@ -456,30 +694,17 @@ const BUILDERS = {
     // kerb
     box(W, 0.22, 0.4, "#c8c8d0", 0, 0.11, 0.55, group, { castShadow: false });
 
-    // the bus
-    const bus = new THREE.Group();
-    bus.position.set(-3.5, 0, -4.2);
-    box(8.4, 2.3, 2.5, "#2f6fc4", 0, 1.5, 0, bus);
-    box(8.5, 0.5, 2.55, "#1f4f92", 0, 0.5, 0, bus);
-    for (let i = 0; i < 5; i++) box(1.2, 0.9, 0.06, "#bfe4ff", -3.2 + i * 1.6, 1.9, 1.28, bus, { castShadow: false });
-    box(1.0, 1.5, 0.06, "#bfe4ff", 4.22, 1.5, 0.7, bus, { castShadow: false });
-    [[-2.7, 1.25], [2.7, 1.25], [-2.7, -1.25], [2.7, -1.25]].forEach(([bx, bz]) => {
-      const wheel = cyl(0.55, 0.55, 0.35, "#22252b", bx, 0.55, bz, bus, 14);
-      wheel.rotation.z = Math.PI / 2;
-    });
-    group.add(bus);
-    c.push({ x: -3.5, z: -4.2, w: 8.6, d: 2.8 });
+    c.push(busVehicle(group, -3.5, -4.2));
 
-    // shelter
-    box(5.0, 0.15, 2.0, "#5a6570", 4.0, 2.6, 2.4, group);
-    cyl(0.09, 0.09, 2.6, "#5a6570", 1.7, 1.3, 2.4, group, 8);
-    cyl(0.09, 0.09, 2.6, "#5a6570", 6.3, 1.3, 2.4, group, 8);
-    box(5.0, 1.4, 0.08, "#9fd4e0", 4.0, 1.5, 3.35, group, { castShadow: false });
-    box(3.4, 0.12, 0.45, "#a4703c", 4.0, 0.5, 3.0, group);
-    box(3.4, 0.5, 0.1, "#a4703c", 4.0, 0.75, 3.22, group);
-    c.push({ x: 4.0, z: 2.9, w: 5.0, d: 1.4 });
+    // Set to the right of the talking spot, not behind it. The camera looks
+    // down from +Z, so a shelter directly behind the NPC puts its ROOF across
+    // the sight line - clear glass does not help, the roof is opaque and has to
+    // be. Standing it aside keeps the conversation in the open.
+    // Its back glass is at the model's local -Z, so a half turn faces the open
+    // front towards the road.
+    c.push(busShelter(group, 7.0, 2.6, Math.PI));
 
-    signBoard(group, "BUS STOP", 4.0, 3.1, 2.4, "#2f6fc4", 2.6);
+    signBoard(group, "BUS STOP", 7.0, 3.1, 2.4, "#2f6fc4", 2.6);
 
     [-8, 8].forEach((x) => {
       cyl(0.1, 0.12, 3.4, "#3a3a44", x, 1.7, 5.6, group, 8);
@@ -563,21 +788,39 @@ export const LOCATION_META = {
   workplace:  { label: "Workplace",  icon: "\u{1F3E2}", blurb: "Office and interviews",     art: "locations/workplace_location_9.png" }
 };
 
-export function buildLocation(id) {
+/** @param {ModelLibrary} [modelLibrary] enables the .glb props; omit for primitives only. */
+export function buildLocation(id, modelLibrary = null) {
   const builder = BUILDERS[id] || BUILDERS.school;
   const group = new THREE.Group();
-  const info = builder(group);
-  return Object.assign({ id, group }, info);
+  props = modelLibrary;
+  try {
+    const info = builder(group);
+    return Object.assign({ id, group }, info);
+  } finally {
+    props = null;
+  }
 }
 
 export function disposeLocation(location) {
-  location.group.traverse((o) => {
-    if (o.geometry) o.geometry.dispose();
-    if (o.material) {
-      (Array.isArray(o.material) ? o.material : [o.material]).forEach((m) => {
-        if (m.map) m.map.dispose();
-        m.dispose();
-      });
-    }
-  });
+  releaseTree(location.group);
+}
+
+/**
+ * Free a subtree's GPU resources.
+ *
+ * Object3D.traverse() cannot be pruned, so this recurses by hand: a node marked
+ * `userData.shared` is a ModelLibrary instance whose geometry and textures are
+ * shared with every other copy of that prop, and disposing it here would blank
+ * out the model everywhere else. Those are freed once, by ModelLibrary.
+ */
+function releaseTree(node) {
+  if (node.userData && node.userData.shared) return;
+  node.children.forEach(releaseTree);
+  if (node.geometry) node.geometry.dispose();
+  if (node.material) {
+    (Array.isArray(node.material) ? node.material : [node.material]).forEach((m) => {
+      if (m.map) m.map.dispose();
+      m.dispose();
+    });
+  }
 }

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>FBX prop → GLB</title>
+<script type="importmap">
+{ "imports": { "three": "../js/vendor/three.module.js" } }
+</script>
+<style>
+  body { font-family: "Segoe UI", system-ui, sans-serif; background:#12203a; color:#e2e8f0;
+         margin:0; padding:28px; line-height:1.5; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  p.sub { color:#94a3b8; margin:0 0 20px; font-size:14px; max-width:70ch; }
+  button { border:0; border-radius:12px; padding:13px 26px; font-size:15px; font-weight:700;
+           background:linear-gradient(160deg,#4ade80,#16a34a); color:#fff; cursor:pointer; }
+  button:disabled { background:#475569; cursor:not-allowed; }
+  #log { margin-top:20px; background:#0a1122; border-radius:12px; padding:16px;
+         font-family: ui-monospace, Consolas, monospace; font-size:13px; white-space:pre-wrap; }
+  .ok { color:#4ade80; } .warn { color:#fbbf24; } .err { color:#f87171; } .dim { color:#64748b; }
+</style>
+</head>
+<body>
+
+<h1>Convert an FBX prop into a game-ready GLB</h1>
+<p class="sub">
+  Nothing in a browser or in Node reads FBX, so the conversion happens here,
+  with the same three.js loader the game already ships. Each prop is stripped of
+  anything that is not geometry, centred on X/Z with its base on y = 0, and
+  scaled to the height the game expects. The result goes back to the props
+  folder as <code>&lt;name&gt;_raw.glb</code>; <code>npm run build:props</code>
+  then cuts the triangle count and compresses it.
+</p>
+
+<button id="run">Convert all props</button>
+<div id="log">Ready.</div>
+
+<script type="module">
+import * as THREE from "three";
+import { FBXLoader } from "../js/vendor/FBXLoader.js";
+import { GLTFExporter } from "../js/vendor/GLTFExporter.js";
+
+/**
+ * height is in world units - what the prop should measure in the game.
+ *
+ * `paint` splits an untextured prop into flat-coloured parts by position, for
+ * models that arrive as one material. Each band takes `axis` (x/y/z) and
+ * `above`/`below` as a FRACTION of the model's size on that axis; a triangle
+ * joins a band only if all three corners fit, so seams follow the model's own
+ * edges instead of sawtoothing. The last band is the catch-all.
+ */
+const PROPS = [
+  { name: "fountain", src: "../spoken_game/props/fountain/fountain.fbx",
+    out: "spoken_game/props/fountain/fountain_raw.glb", height: 2.2 },
+
+  { name: "hospital_cabinet",
+    src: "../spoken_game/props/hospital_cabinet/first%2Baid%2Bcabinet-fbx.fbx",
+    out: "spoken_game/props/hospital_cabinet/hospital_cabinet_raw.glb",
+    height: 1.7,
+    // Every surface is one white material. The door carries a cross emblem
+    // raised 0.36 proud of its face - picking that out is the difference
+    // between a first aid cabinet and a white cupboard.
+    paint: [
+      { name: "cross", axis: "z", above: 0.94, colour: 0xcf3b30 },
+      { name: "body", colour: 0xf1f4f6 }
+    ] }
+];
+
+const log = document.querySelector("#log");
+const say = (text, cls = "") => {
+  log.innerHTML += (log.innerHTML ? "\n" : "") + (cls ? `<span class="${cls}">${text}</span>` : text);
+};
+
+/**
+ * Split one mesh into a mesh per paint band, keyed on triangle position.
+ *
+ * Returns the replacement meshes, or null when nothing needed splitting.
+ */
+function paintMesh(mesh, bands, bounds) {
+  const pos = mesh.geometry.getAttribute("position");
+  const index = mesh.geometry.index;
+  const count = index ? index.count : pos.count;
+  const axisOf = { x: 0, y: 1, z: 2 };
+
+  const buckets = bands.map(() => []);
+  for (let i = 0; i < count; i += 3) {
+    const corners = [0, 1, 2].map((c) => (index ? index.getX(i + c) : i + c));
+
+    let pick = bands.length - 1;
+    for (let b = 0; b < bands.length; b++) {
+      const band = bands[b];
+      if (band.above == null && band.below == null) continue;
+      const axis = axisOf[band.axis || "y"];
+      const lo = Math.min(...corners.map((k) => pos.getComponent(k, axis)));
+      const hi = Math.max(...corners.map((k) => pos.getComponent(k, axis)));
+      const min = bounds.min.getComponent(axis);
+      const span = bounds.max.getComponent(axis) - min || 1;
+      if (band.above != null && (lo - min) / span < band.above) continue;
+      if (band.below != null && (hi - min) / span > band.below) continue;
+      pick = b;
+      break;
+    }
+    buckets[pick].push(...corners);
+  }
+
+  if (buckets.filter((b) => b.length).length < 2) return null;
+
+  return buckets.map((keep, b) => {
+    if (!keep.length) return null;
+    const geometry = mesh.geometry.clone();
+    geometry.setIndex(keep);
+    const part = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({
+      name: bands[b].name,
+      color: new THREE.Color(bands[b].colour),
+      metalness: 0, roughness: 1, side: THREE.DoubleSide
+    }));
+    part.name = mesh.name + "_" + bands[b].name;
+    part.position.copy(mesh.position);
+    part.quaternion.copy(mesh.quaternion);
+    part.scale.copy(mesh.scale);
+    return { part, tris: keep.length / 3 };
+  }).filter(Boolean);
+}
+
+async function convert(prop) {
+  say(`\n${prop.name}`, "ok");
+  const root = await new Promise((res, rej) => new FBXLoader().load(prop.src, res, undefined, rej));
+
+  // A prop should contribute geometry and nothing else. This fountain shipped
+  // with a directional light and a camera, which would light and frame the
+  // whole park from inside the model.
+  const doomed = [];
+  root.traverse((o) => { if (o.isLight || o.isCamera) doomed.push(o); });
+  doomed.forEach((o) => o.parent && o.parent.remove(o));
+  if (doomed.length) say(`  stripped ${doomed.length} light/camera object(s)`, "warn");
+
+  let triangles = 0;
+  let textured = 0;
+  root.traverse((o) => {
+    if (!o.isMesh) return;
+    const p = o.geometry.getAttribute("position");
+    triangles += (o.geometry.index ? o.geometry.index.count : p.count) / 3;
+
+    const list = Array.isArray(o.material) ? o.material : [o.material];
+    if (list.some((m) => m && m.map)) textured++;
+
+    // With no textures there is nothing for UVs to address, and dropping them
+    // (and the normals, which the game rebuilds on load) lets the simplifier
+    // weld vertices instead of stalling on split ones.
+    if (!list.some((m) => m && m.map)) {
+      ["uv", "uv1", "uv2", "normal"].forEach((a) => {
+        if (o.geometry.getAttribute(a)) o.geometry.deleteAttribute(a);
+      });
+    }
+
+    const made = list.map((m) => new THREE.MeshStandardMaterial({
+      name: ((m && m.name) || "mat").trim(),
+      color: m && m.color ? m.color.clone() : new THREE.Color(0xcccccc),
+      map: (m && m.map) || null,
+      metalness: 0,
+      roughness: 1,
+      side: THREE.DoubleSide       // flat rings and sheets are modelled single-sided
+    }));
+    o.material = made.length === 1 ? made[0] : made;
+  });
+
+  if (prop.paint) {
+    root.updateWorldMatrix(true, true);
+    const whole = new THREE.Box3().setFromObject(root);
+    const targets = [];
+    root.traverse((o) => { if (o.isMesh) targets.push(o); });
+    for (const mesh of targets) {
+      const parts = paintMesh(mesh, prop.paint, whole);
+      if (!parts) continue;
+      const parent = mesh.parent;
+      parent.remove(mesh);
+      parts.forEach(({ part, tris }) => {
+        parent.add(part);
+        say(`  ${part.name.padEnd(22)} ${String(Math.round(tris)).padStart(5)} tris  ` +
+            `#${part.material.color.getHexString()}`);
+      });
+    }
+  }
+
+  // Centre on X/Z, base on y = 0, scaled to the game's height.
+  root.updateWorldMatrix(true, true);
+  const box = new THREE.Box3().setFromObject(root);
+  const size = new THREE.Vector3(), centre = new THREE.Vector3();
+  box.getSize(size);
+  box.getCenter(centre);
+
+  const wrap = new THREE.Group();
+  wrap.add(root);
+  const scale = size.y > 0 ? prop.height / size.y : 1;
+  root.scale.setScalar(scale);
+  root.position.set(-centre.x * scale, -box.min.y * scale, -centre.z * scale);
+  wrap.updateMatrixWorld(true);
+
+  const after = new THREE.Box3().setFromObject(wrap);
+  const fitted = new THREE.Vector3();
+  after.getSize(fitted);
+  say(`  ${Math.round(triangles).toLocaleString()} triangles, ${textured} textured mesh(es)`);
+  say(`  ${size.toArray().map((n) => n.toFixed(1)).join(" x ")} source units  →  ` +
+      `${fitted.toArray().map((n) => n.toFixed(2)).join(" x ")} world units, base y=${after.min.y.toFixed(3)}`);
+
+  const glb = await new Promise((res, rej) => new GLTFExporter().parse(wrap, res, rej, { binary: true }));
+  const bytes = new Uint8Array(glb);
+  const resp = await fetch("/__save", {
+    method: "POST",
+    headers: { "x-filename": prop.out },
+    body: bytes
+  });
+  if (!resp.ok) { say(`  save failed: ${resp.status} ${await resp.text()}`, "err"); return; }
+  say(`  wrote ${prop.out}  (${(bytes.length / 1048576).toFixed(2)} MB)`, "ok");
+}
+
+document.querySelector("#run").addEventListener("click", async (e) => {
+  e.target.disabled = true;
+  log.innerHTML = "";
+  try {
+    for (const prop of PROPS) await convert(prop);
+    say("\nDone. Now run:  npm run build:props", "ok");
+  } catch (err) {
+    say("\n" + err, "err");
+  }
+  e.target.disabled = false;
+});
+</script>
+</body>
+</html>

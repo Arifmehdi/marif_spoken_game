@@ -6,6 +6,7 @@
  * and Character.update() will animate a GLTF rig without changes elsewhere.
  */
 import * as THREE from "three";
+import { measureModel } from "./ModelLibrary.js";
 
 const SKINS = ["#f3c9a0", "#e0a878", "#c68642", "#8d5524", "#ffdbac"];
 
@@ -248,6 +249,13 @@ export class Character {
     const clips = modelGroup.userData.clips || [];
     if (clips.length) this.setupClips(clips);
     this.fitModelHeight();
+
+    // Fit once more after the mixer has actually been running in the real loop.
+    // Measuring a skinned mesh the instant it is attached does not always match
+    // what it settles to a few frames later, and being wrong here shows up as a
+    // character of the wrong size or floating off the floor. The fit converges
+    // on the target, so repeating it is safe and costs a few milliseconds once.
+    this.refitFrames = 4;
     return true;
   }
 
@@ -264,22 +272,20 @@ export class Character {
     const target = this.model && this.model.userData.targetHeight;
     if (!target) return;
 
-    if (this.mixer) this.mixer.update(1 / 60);   // settle into the first frame
+    // Settle into the real animated pose before measuring. Mixamo clips drive
+    // the hips with a position track, so the animated body can sit a long way
+    // off the bind pose - measuring the bind pose left the character floating
+    // more than a body-height above the floor.
+    if (this.mixer) {
+      if (this.activeAction) {
+        this.activeAction.setEffectiveWeight(1);
+        this.activeAction.paused = false;
+        this.activeAction.time = 0;
+      }
+      this.mixer.update(0.001);
+    }
 
-    const measure = () => {
-      this.model.updateWorldMatrix(true, true);
-      const box = new THREE.Box3();
-      let skinned = false;
-      this.model.traverse((o) => {
-        if (!o.isSkinnedMesh) return;
-        skinned = true;
-        if (o.skeleton) o.skeleton.update();
-        o.computeBoundingBox();
-        box.union(o.boundingBox.clone().applyMatrix4(o.matrixWorld));
-      });
-      if (!skinned) box.setFromObject(this.model);
-      return box;
-    };
+    const measure = () => measureModel(this.model);
 
     // In these exports the bones are children of the mesh, so the group's scale
     // reaches the vertices twice - through bone.matrixWorld AND through the
@@ -295,9 +301,21 @@ export class Character {
       this.model.scale.multiplyScalar(Math.sqrt(target / h));
     }
 
-    // Rescaling moves the feet; drop the model back onto the ground plane.
-    const after = measure();
-    this.model.position.y -= after.min.y;
+    // Drop the model onto the ground plane.
+    //
+    // Same trap as the scale above: because the bones sit under the mesh, a
+    // change to the model's transform reaches the vertices twice, so moving the
+    // body down by X shifts the measured feet by roughly 2X. A single
+    // subtraction overshoots and leaves the character floating or sunk, so
+    // step toward zero with damping until the feet are on the floor.
+    for (let i = 0; i < 15; i++) {
+      const box = measure();
+      if (Math.abs(box.min.y) < 0.005) break;
+      this.model.position.y -= box.min.y * 0.5;
+    }
+
+    // Every frame resets position.y, so remember where the floor is.
+    this.groundOffsetY = this.model.position.y;
   }
 
   setupClips(clips) {
@@ -351,9 +369,16 @@ export class Character {
       return true;
     }
 
-    next.reset().setEffectiveWeight(1).fadeIn(0.22).play();
+    if (this.activeAction) {
+      next.reset().setEffectiveWeight(1).fadeIn(0.22).play();
+      this.activeAction.fadeOut(0.22);
+    } else {
+      // First clip: snap to full weight. Fading in from nothing means fading in
+      // from the bind pose, which both looks wrong and makes the very first
+      // height measurement read the T-pose instead of the animation.
+      next.reset().setEffectiveWeight(1).play();
+    }
     next.paused = false;
-    if (this.activeAction) this.activeAction.fadeOut(0.22);
     this.activeAction = next;
     return true;
   }
@@ -365,12 +390,20 @@ export class Character {
 
   /** Whole-body motion for rig-less models; real clips take over when present. */
   updateModel(dt) {
+    if (this.refitFrames > 0) {
+      this.refitFrames--;
+      if (this.refitFrames === 0) this.fitModelHeight();
+    }
+
     if (this.mixer) {
       this.mixer.update(dt);
       // A rigged clip animates the body itself - adding a body-wide bob on top
       // would double up and look wrong.
       if (this.playClip(this.state)) {
-        this.model.position.y = 0;
+        // Return to the GROUNDED height, not to zero: fitModelHeight offsets the
+        // model so the feet land on the floor, and zeroing it here would leave
+        // the character hovering by however much that offset was.
+        this.model.position.y = this.groundOffsetY || 0;
         this.model.rotation.x = 0;
         this.model.rotation.z = 0;
         return;
@@ -416,7 +449,7 @@ export class Character {
         break;
     }
 
-    m.position.y = y;
+    m.position.y = (this.groundOffsetY || 0) + y;
     m.rotation.x = tiltX;
     m.rotation.z = tiltZ;
   }

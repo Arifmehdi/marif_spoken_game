@@ -14,7 +14,7 @@ function hideLoader() {
  * looks exactly like "the fix did not work". Open the console (F12) and check
  * this line matches what you expect before reporting a visual problem.
  */
-export const BUILD = "2026-08-28g · marker turns green in talk range";
+export const BUILD = "2026-08-31v · no sky gap under the room";
 console.log("%c Spoken English Adventure ", "background:#3b82f6;color:#fff;font-weight:bold",
   "build:", BUILD);
 

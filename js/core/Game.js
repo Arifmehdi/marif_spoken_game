@@ -12,6 +12,7 @@ import { Player } from "../world/Player.js";
 import { NPC } from "../world/NPC.js";
 import { buildLocation, disposeLocation, LOCATION_META } from "../world/LocationFactory.js";
 import { ModelLibrary } from "../world/ModelLibrary.js";
+import { pickNpcModel, NPC_MODEL_FALLBACK } from "../world/Casting.js";
 import { LessonLoader } from "../conversation/LessonLoader.js";
 import { Evaluator } from "../conversation/Evaluator.js";
 import { ConversationEngine } from "../conversation/ConversationEngine.js";
@@ -21,24 +22,8 @@ import { ProgressStore } from "../progress/ProgressStore.js";
 import { UI } from "../ui/UI.js";
 import { Screens } from "../ui/Screens.js";
 import { Menu, ART } from "../ui/Menu.js";
-
-/**
- * Which 3D model each NPC role uses.
- *
- * Only one adult model has been delivered so far, so every role falls back to
- * it - a real character everywhere beats a primitive placeholder. As more .glb
- * files arrive, register them in ModelLibrary.MODELS and add the role here.
- */
-const NPC_MODELS = {
-  teacher: "teacher",
-  mother: "teacher",
-  doctor: "teacher",
-  friend: "teacher",
-  shopkeeper: "teacher",
-  waiter: "teacher",
-  police: "teacher"
-};
-const NPC_MODEL_FALLBACK = "teacher";
+import { MobileSupport } from "../ui/MobileSupport.js";
+import { SoundBoard } from "../ui/SoundBoard.js";
 
 export class Game {
   constructor(canvas, screenRoot) {
@@ -49,6 +34,7 @@ export class Game {
     this.menu = new Menu(document.querySelector("#menu-root"));
     this.loader = new LessonLoader();
     this.models = new ModelLibrary(this.scene.renderer);
+    this.sound = new SoundBoard();
     this.input = new InputManager({
       joystick: document.querySelector("#joystick"),
       knob: document.querySelector("#knob"),
@@ -91,17 +77,48 @@ export class Game {
 
     // Start both downloads now so they finish behind the title menu, rather
     // than mid-lesson with a placeholder standing in.
-    this.models.prefetch(["boy", "girl", NPC_MODEL_FALLBACK]);
+    this.models.prefetch(["npcWoman1", "npcWoman2", "npcMan1", "npcMan2", "plant1", "bookshelf"]);
+    this.sound.setEnabled(this.progress.getSetting("sound") !== false);
+    this.sound.preload();
 
     await this.loadTodaysLesson();
     this.enterLocation(this.lessonEntry.location, { silent: true });
     this.applyChosenCharacter();
     this.ui.renderHud(this.progress);
+    this.setupMobile();
     this.loop();
 
     // First run goes straight to character select; afterwards, the title menu.
     if (!this.progress.data.characterId) this.openCharacterSelect({ firstRun: true });
     else this.openMenu();
+  }
+
+  /* --------------------------------------------------------------- mobile */
+
+  /**
+   * Portrait phones are gated behind a "rotate your device" screen. While it is
+   * up the game is paused and muted, so nothing runs behind a screen the player
+   * cannot see, and no lesson audio plays into an empty room.
+   */
+  setupMobile() {
+    this.mobile = new MobileSupport({
+      onBlock: () => {
+        this.rotateBlocked = true;
+        this.speechOut.cancel();
+        this.speechIn.abort();
+        this.input.setEnabled(false);
+        this.player.freeze(true);
+      },
+      onResume: () => {
+        this.rotateBlocked = false;
+        // Hand control back only if nothing else is holding it.
+        const held = this.shellMode || this.paused || this.mapOpen || this.inConversation;
+        this.input.setEnabled(!held);
+        this.player.freeze(held);
+        this.scene.resize();
+        this.lastTime = performance.now();
+      }
+    });
   }
 
   /* ----------------------------------------------------------- game shell */
@@ -221,6 +238,7 @@ export class Game {
       onChange: (key, value) => {
         this.progress.setSetting(key, value);
         if (key === "voice") this.speechOut.setEnabled(value);
+        if (key === "sound") this.sound.setEnabled(value);
         if (key === "lang") { this.speechOut.setLanguage(value); this.speechIn.setLanguage(value); }
       },
       onReset: async () => {
@@ -404,7 +422,7 @@ export class Game {
       this.npc = null;
     }
 
-    this.location = buildLocation(id);
+    this.location = buildLocation(id, this.models);
     this.scene.scene.add(this.location.group);
     this.scene.setAtmosphere(this.location.sky, this.location.fog);
 
@@ -422,7 +440,9 @@ export class Game {
 
     const def = isLessonHere && this.activeLesson.characters && this.activeLesson.characters[0]
       ? this.activeLesson.characters[0]
-      : { id: "guide", name: "Ravi", role: "friend" };
+      // The wandering guide. "friend" would default to the female pool, but
+      // Ravi is a man - state it so the casting matches the name.
+      : { id: "guide", name: "Ravi", role: "friend", gender: "male" };
 
     this.npc = new NPC({ id: def.id, name: def.name, role: def.role, spot });
     this.npc.setMarker(isLessonHere ? "quest" : "talk");
@@ -430,7 +450,7 @@ export class Game {
 
     // Every NPC gets a real 3D model. The placeholder body is hidden up front
     // so it never flashes on screen, and only comes back if the load fails.
-    const npcModel = NPC_MODELS[def.role] || NPC_MODEL_FALLBACK;
+    const npcModel = pickNpcModel(def, this.location.id) || NPC_MODEL_FALLBACK;
     if (npcModel) {
       const spawned = this.npc;
       spawned.character.expectModel();
@@ -476,6 +496,10 @@ export class Game {
     document.querySelector("#btn-progress").addEventListener("click", () =>
       this.screens.progressScreen(this.progress, this.manifest));
     document.querySelector("#btn-settings").addEventListener("click", () => this.openSettings());
+    document.querySelector("#btn-fullscreen").addEventListener("click", async () => {
+      const on = await MobileSupport.toggleFullscreen();
+      this.ui.toast(on ? "Fullscreen on" : "Fullscreen off", "info", 1500);
+    });
   }
 
   wireSpeech() {
@@ -627,6 +651,12 @@ export class Game {
     const dt = Math.min(0.05, (now - this.lastTime) / 1000);
     this.lastTime = now;
 
+    // Rotate gate is up: the player cannot see the game, so do not run it.
+    if (this.rotateBlocked) {
+      requestAnimationFrame(() => this.loop());
+      return;
+    }
+
     // Paused: hold the frame exactly as it was. No movement, no animation, no
     // proximity checks - so nothing can change behind the pause screen.
     if (this.paused) {
@@ -651,8 +681,12 @@ export class Game {
       const entered = this.npc.update(dt, this.player.group.position);
       if (!this.inConversation) {
         this.ui.showInteract(this.npc.inRange, "Talk");
-        if (entered && this.activeLesson && this.activeLesson.location === this.location.id) {
-          this.ui.toast("Press Talk to start the conversation", "info", 2200);
+        if (entered) {
+          // Same instant the marker turns green and the Talk button appears.
+          this.sound.play("talkReady", { cooldown: 1200 });
+          if (this.activeLesson && this.activeLesson.location === this.location.id) {
+            this.ui.toast("Press Talk to start the conversation", "info", 2200);
+          }
         }
       }
     }

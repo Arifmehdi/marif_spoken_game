@@ -18,7 +18,7 @@ const EMPTY = () => ({
   coins: 0,
   lessons: {},   // lesson_id -> { bestScore, lastScore, attempts, stars, completedAt }
   history: [],   // one entry per completed conversation
-  settings: { voice: true, music: true, lang: "en-IN" }
+  settings: { voice: true, sound: true, music: true, lang: "en-IN" }
 });
 
 export class ProgressStore {

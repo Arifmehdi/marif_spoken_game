@@ -1,0 +1,171 @@
+/* ======================================================================
+   MOBILE
+
+   Two problems on a phone:
+
+   1. Portrait squeezes an isometric 3D game into a 0.46 aspect - you can
+      barely see the world. Portrait phones get a rotate gate instead.
+   2. Landscape phones are SHORT (375px tall), and the desktop HUD is laid
+      out vertically. The old breakpoint was max-width:640px, which never
+      fires in landscape because the screen is 812px WIDE. Everything here
+      keys off max-height instead.
+   ====================================================================== */
+
+/* stop pull-to-refresh and rubber-banding from fighting the joystick */
+html, body { overscroll-behavior: none; touch-action: none; }
+
+/* ------------------------------------------------------ rotate gate */
+
+#rotate-gate {
+  position: fixed; inset: 0; z-index: 90;
+  background: linear-gradient(160deg, #12203a, #0a1122);
+  display: grid; place-items: center; text-align: center;
+  padding: 24px;
+}
+#rotate-gate.hidden { display: none !important; }
+
+.rotate-inner { max-width: 320px; }
+
+.rotate-phone {
+  width: 74px; height: 120px; margin: 0 auto 22px;
+  border: 5px solid #fff; border-radius: 12px;
+  position: relative;
+  animation: rotate-hint 2.4s ease-in-out infinite;
+}
+.rotate-phone::after {
+  content: ""; position: absolute; left: 50%; bottom: 7px;
+  transform: translateX(-50%);
+  width: 26px; height: 4px; border-radius: 2px; background: #fff; opacity: .75;
+}
+@keyframes rotate-hint {
+  0%, 30%   { transform: rotate(0deg); }
+  55%, 100% { transform: rotate(-90deg); }
+}
+
+#rotate-gate h2 {
+  color: #fff; font-size: 23px; font-weight: 800; margin: 0 0 8px;
+}
+#rotate-gate p { color: #94a3b8; font-weight: 600; font-size: 14.5px; margin: 0 0 22px; line-height: 1.45; }
+
+#rotate-fullscreen {
+  border: 0; cursor: pointer; font-family: var(--font); font-weight: 800; font-size: 16px;
+  padding: 15px 34px; border-radius: 15px;
+  background: linear-gradient(160deg, #4ade80, #16a34a); color: #fff;
+  box-shadow: 0 5px 0 #15803d;
+}
+#rotate-fullscreen:active { transform: translateY(2px); }
+
+/* freeze the world behind the gate */
+body.is-rotate-blocked #hud,
+body.is-rotate-blocked #controls,
+body.is-rotate-blocked #convo,
+body.is-rotate-blocked #bubbles { display: none !important; }
+
+/* ------------------------------------- short screens (landscape phone) */
+
+@media (max-height: 520px) {
+  /* Rail goes horizontal along the top. Vertically it needed 322px on a
+     375px screen and ran off the bottom, straight through the joystick. */
+  .hud-rail {
+    top: 12px; left: 236px; bottom: auto;
+    flex-direction: row; gap: 6px;
+  }
+  .rail-btn { width: 46px; height: 44px; border-radius: 12px; }
+  .rail-btn span { font-size: 17px; }
+  .rail-btn img { width: 20px; height: 20px; }
+  .rail-btn small { font-size: 8px; letter-spacing: 0; }
+  .rail-btn:hover { transform: none; }
+
+  .hud-player { padding: 5px 12px 5px 5px; gap: 8px; }
+  .avatar { width: 36px; height: 36px; font-size: 18px; border-width: 2px; }
+  .player-meta { min-width: 96px; }
+  .player-line { font-size: 13px; }
+  .level-pill { font-size: 9px; padding: 1px 6px; }
+  .xp-bar { height: 6px; margin: 3px 0 1px; }
+  .xp-text { font-size: 9px; }
+
+  .hud-stats { top: 12px; right: 12px; gap: 6px; }
+  .stat-pill { padding: 5px 11px; font-size: 13px; }
+  .stat-pill img.ico { width: 17px; height: 17px; }
+
+  #quest-card {
+    top: 64px; right: 12px; max-width: 200px; padding: 8px 11px;
+    border-left-width: 3px;
+  }
+  .quest-head { font-size: 9px; margin-bottom: 2px; }
+  #quest-text { font-size: 11.5px; line-height: 1.3; }
+
+  #joystick { width: 104px; height: 104px; left: 16px; bottom: calc(14px + var(--safe-b)); }
+  #knob { width: 44px; height: 44px; }
+  .action-cluster { right: 16px; bottom: calc(14px + var(--safe-b)); gap: 9px; }
+  .round-btn { width: 64px; height: 64px; border-width: 2px; }
+  .round-btn .btn-icon { font-size: 21px; }
+  .round-btn .btn-label { font-size: 9px; }
+
+  /* conversation panel: 270px tall on a 375px screen left no room */
+  #convo {
+    bottom: calc(10px + var(--safe-b));
+    width: min(520px, calc(100vw - 200px));
+    padding: 9px 13px 11px; border-radius: 16px;
+  }
+  .convo-step { font-size: 9px; }
+  .convo-prompt { font-size: 14px; margin: 2px 0 7px; }
+  .answer-area { gap: 6px; }
+  .mic-btn { width: 52px; height: 52px; border-width: 3px; }
+  .mic-glyph { font-size: 21px; }
+  .mic-wave { bottom: 5px; height: 9px; }
+  .mic-label { font-size: 11.5px; min-height: 15px; }
+  #answer-input { padding: 9px 13px; font-size: 15px; border-width: 2px; }
+  .type-row .btn { padding: 9px 16px; font-size: 14px; }
+  .hint-btn { padding: 4px 12px; font-size: 11px; }
+  .hint-text { font-size: 12px; }
+
+  /* feedback + popups have to fit a short screen too */
+  #feedback { bottom: calc(10px + var(--safe-b)); width: min(460px, calc(100vw - 200px)); }
+  .fb-card { padding: 11px 14px 13px; border-width: 3px; }
+  .fb-label { font-size: 17px; }
+  .fb-emoji { font-size: 23px; }
+  .fb-meter { height: 9px; margin: 8px 0 5px; }
+  .fb-stars { font-size: 17px; }
+  .fb-msg { font-size: 13px; }
+  .fb-said { font-size: 11.5px; }
+  .fb-actions { margin-top: 9px; }
+  .fb-actions .btn { padding: 9px 18px; font-size: 13.5px; }
+
+  .screen-card { padding: 16px 16px 14px; max-height: 94vh; }
+  .screen-title { font-size: 20px; }
+  .screen-sub { font-size: 13px; margin-bottom: 12px; }
+  .result-percent { font-size: 34px; }
+  .result-emoji { font-size: 28px; }
+  .result-grid { gap: 6px; margin: 10px 0; }
+  .result-kpi { padding: 8px 4px; }
+  .result-kpi span { font-size: 16px; }
+  .btn-big { padding: 12px 28px; font-size: 16px; }
+
+  /* menu shell */
+  .menu-left { padding-top: 14px; padding-bottom: 14px; gap: 10px; }
+  .logo-top { font-size: 15px; }
+  .logo-bottom { font-size: 27px; }
+  .menu-item { padding: 3px 12px 3px 16px; }
+  .menu-label { font-size: 19px; }
+  .menu-item.is-big .menu-label { font-size: 30px; }
+  .menu-sub { font-size: 10px; }
+  .hero-portrait { width: 42px; height: 42px; }
+  .hero-xp { width: 96px; }
+  .sheet { padding-top: 46px; }
+  .pick-card { width: 108px; }
+  .pick-name { font-size: 15px; }
+  .sheet-wide .loc-grid { grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 9px; }
+  .loc-name { font-size: 14px; }
+  .loc-blurb { font-size: 10px; }
+}
+
+/* very short (e.g. 320px tall landscape) - drop the labels entirely */
+@media (max-height: 400px) {
+  .rail-btn small { display: none; }
+  .rail-btn { width: 40px; height: 36px; }
+  .round-btn .btn-label { display: none; }
+  .round-btn { width: 56px; height: 56px; }
+  #joystick { width: 92px; height: 92px; }
+  #quest-card { display: none; }
+}

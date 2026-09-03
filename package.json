@@ -6,6 +6,11 @@
   "type": "module",
   "scripts": {
     "start": "node tools/serve.mjs",
-    "test": "node tests/evaluator.test.mjs"
+    "test": "node tests/evaluator.test.mjs",
+    "optimize": "node tools/optimize-models.mjs",
+    "build:props": "node tools/build-props.mjs"
+  },
+  "devDependencies": {
+    "jimp": "^1.6.1"
   }
 }

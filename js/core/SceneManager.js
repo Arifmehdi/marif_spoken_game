@@ -15,12 +15,42 @@ const CAM_DIST = 8.2;
 const CAM_HEIGHT = 6.4;
 const CAM_LOOK_Y = 1.1;
 
+/**
+ * Rendering quality tiers.
+ *
+ * A phone has roughly a tenth of a desktop's fill rate, and shadow maps plus a
+ * 3x pixel ratio are what actually make this game unplayable there - not the
+ * geometry. Each tier trades the expensive things away first.
+ */
+export const QUALITY = {
+  low:    { pixelRatio: 1.0,  shadows: false, shadowMap: 0,    antialias: false },
+  medium: { pixelRatio: 1.25, shadows: true,  shadowMap: 1024, antialias: false },
+  high:   { pixelRatio: 2.0,  shadows: true,  shadowMap: 2048, antialias: true }
+};
+
+export function detectQuality() {
+  const coarse = typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches;
+  const mobileUA = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || "");
+  const cores = navigator.hardwareConcurrency || 4;
+  const memory = navigator.deviceMemory || 4;
+
+  if (!(coarse || mobileUA)) return "high";
+  return (cores <= 4 || memory <= 4) ? "low" : "medium";
+}
+
 export class SceneManager {
-  constructor(canvas) {
+  constructor(canvas, quality) {
     this.canvas = canvas;
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    this.renderer.shadowMap.enabled = true;
+    this.quality = quality || detectQuality();
+    const q = QUALITY[this.quality];
+
+    this.renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: q.antialias,
+      powerPreference: "high-performance"
+    });
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, q.pixelRatio));
+    this.renderer.shadowMap.enabled = q.shadows;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
 
@@ -50,10 +80,11 @@ export class SceneManager {
     this.ambient = new THREE.HemisphereLight("#ffffff", "#9a8f7a", 2.3);
     this.scene.add(this.ambient);
 
+    const q = QUALITY[this.quality];
     this.sun = new THREE.DirectionalLight("#fff3d6", 1.8);
     this.sun.position.set(7, 13, 6);
-    this.sun.castShadow = true;
-    this.sun.shadow.mapSize.set(2048, 2048);
+    this.sun.castShadow = q.shadows;
+    if (q.shadows) this.sun.shadow.mapSize.set(q.shadowMap, q.shadowMap);
     const s = this.sun.shadow.camera;
     s.left = -16; s.right = 16; s.top = 16; s.bottom = -16;
     s.near = 1; s.far = 45;

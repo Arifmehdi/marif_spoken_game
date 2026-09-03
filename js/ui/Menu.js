@@ -13,19 +13,25 @@ import { LOCATION_META } from "../world/LocationFactory.js";
 export const ART = "spoken_game/";
 
 /**
- * `model` names an entry in ModelLibrary. Only two student models exist so far
- * (one boy, one girl), so the two boys share one and the two girls share the
- * other. Their 2D portraits still differ. Drop in two more .glb files and give
- * them their own `model` key to make all four distinct in the world.
+ * `model` names an entry in ModelLibrary. Every character now has its own
+ * rigged model with idle / walk / run / talk clips, so all four are distinct in
+ * the world as well as on their portrait. If a portrait and its 3D model do not
+ * look like the same person, swap the `model` values here - nothing else
+ * depends on the pairing.
  */
 export const CHARACTERS = [
-  { id: "arjun", name: "Arjun", art: "character/main_character/main_carecter_boy.png", model: "boy",
+  // Pairings verified by reading each model's texture atlas:
+  //   boy_1  = yellow jacket + glasses      -> Rohan
+  //   boy_2  = denim jacket + blue eyes     -> Arjun
+  //   girl_1 = pink hoodie + headband       -> Priya
+  //   girl_2 = purple pinafore + pigtails   -> Meera
+  { id: "arjun", name: "Arjun", art: "character/main_character/main_carecter_boy.png", model: "boy2",
     blurb: "Confident and friendly", colors: { top: "#4a6fa5", bottom: "#2f4f8f", hair: "#1b1b1f", skin: 1 } },
-  { id: "priya", name: "Priya", art: "character/main_character/main_crecter_girl.png", model: "girl",
+  { id: "priya", name: "Priya", art: "character/main_character/main_crecter_girl.png", model: "girl1",
     blurb: "Curious and quick", colors: { top: "#ff6fa5", bottom: "#3b6ea5", hair: "#2b2118", skin: 1 } },
-  { id: "rohan", name: "Rohan", art: "character/main_character/carecter_1_boy.png", model: "boy",
+  { id: "rohan", name: "Rohan", art: "character/main_character/carecter_1_boy.png", model: "boy1",
     blurb: "Clever and careful", colors: { top: "#f2b33d", bottom: "#3b5f9e", hair: "#241a12", skin: 1 } },
-  { id: "meera", name: "Meera", art: "character/main_character/carecter_girl.png", model: "girl",
+  { id: "meera", name: "Meera", art: "character/main_character/carecter_girl.png", model: "girl2",
     blurb: "Cheerful and bold", colors: { top: "#c86fd6", bottom: "#a4508f", hair: "#1b1b1f", skin: 1 } }
 ];
 
@@ -119,12 +125,12 @@ export class Menu {
     const pct = Math.round((progress.xpIntoLevel / progress.xpForLevel) * 100);
 
     const items = [
-      { id: "play", label: "PLAY", sub: lesson ? "Day " + lesson.day + " · " + lesson.topic : "Start today's lesson", big: true },
-      { id: "free", label: "free play", sub: "Any place, any time" },
-      { id: "character", label: "character", sub: hero.name },
-      { id: "location", label: "location", sub: "Choose where to go" },
-      { id: "progress", label: "progress", sub: "Scores and streak" },
-      { id: "settings", label: "settings", sub: "Voice and accent" }
+      { id: "play", label: "Play", sub: lesson ? "Day " + lesson.day + " · " + lesson.topic : "Start today's lesson", big: true },
+      { id: "free", label: "Free Play", sub: "Any place, any time" },
+      { id: "character", label: "Character", sub: hero.name },
+      { id: "location", label: "Location", sub: "Choose where to go" },
+      { id: "progress", label: "Progress", sub: "Scores and streak" },
+      { id: "settings", label: "Settings", sub: "Voice and accent" }
     ];
 
     const list = items.map((it) =>
@@ -217,19 +223,29 @@ export class Menu {
    *   the conversation waiting there. Otherwise places unlock day by day.
    */
   locationSelect(progress, manifest, currentId, todayLocation, { onTravel, onBack, free = false }) {
-    // A place opens once the student reaches the first lesson set there.
-    const firstDay = {}, topicAt = {};
+    /*
+     * One card per PLACE, but a place can hold more than one day - home has
+     * both day 6 and day 7. Keeping only the first made day 7 invisible: the
+     * cards read 1,2,3,4,5,6,8,9,10 and looked like a lesson had gone missing.
+     * Every day at a place is collected, so the card can say so.
+     */
+    const daysAt = {}, topicsAt = {};
     manifest.lessons.forEach((l) => {
-      if (firstDay[l.location] == null || l.day < firstDay[l.location]) {
-        firstDay[l.location] = l.day;
-        topicAt[l.location] = l.topic;
-      }
+      if (!daysAt[l.location]) { daysAt[l.location] = []; topicsAt[l.location] = []; }
+      daysAt[l.location].push(l.day);
+      topicsAt[l.location].push(l.topic);
     });
+    Object.values(daysAt).forEach((days) => days.sort((a, b) => a - b));
+
+    // A place opens once the student reaches the FIRST lesson set there.
+    const firstDay = {};
+    Object.keys(daysAt).forEach((id) => { firstDay[id] = daysAt[id][0]; });
     const nextDay = progress.completedLessonIds().length + 1;
 
     const tiles = Object.keys(LOCATION_META).map((id) => {
       const meta = LOCATION_META[id];
       const day = firstDay[id];
+      const days = daysAt[id] || [];
       const locked = !free && day != null && day > nextDay;
       const isToday = !free && id === todayLocation;
       const done = day != null &&
@@ -248,7 +264,12 @@ export class Menu {
           (id === currentId ? '<div class="loc-here">You are here</div>' : "") +
         "</div>" +
         '<div class="loc-name">' + esc(meta.label) + "</div>" +
-        '<div class="loc-blurb">' + esc(free && topicAt[id] ? topicAt[id] : meta.blurb) + "</div>" +
+        '<div class="loc-blurb">' + esc(free && topicsAt[id]
+          ? topicsAt[id].join(" · ")
+          : meta.blurb) + "</div>" +
+        // Spell out which days live here. Without it a place holding two
+        // lessons only ever advertised the earlier one.
+        (days.length ? '<div class="loc-days">Day ' + days.join(" &amp; ") + "</div>" : "") +
       "</button>";
     }).join("");
 

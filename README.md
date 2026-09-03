@@ -87,8 +87,8 @@ That is the whole process. The engine picks it up on the next reload.
 | `hint` | Revealed by the Hint button |
 | `points` | Maximum XP for the turn |
 
-`location` may be any of: `school`, `home`, `shop`, `restaurant`, `hospital`,
-`park`, `city`. `role` (per character) drives both the 3D look and the voice:
+`location` may be any of the nine places: `home`, `school`, `shop`,
+`restaurant`, `hospital`, `park`, `transport`, `city`, `workplace`. `role` (per character) drives both the 3D look and the voice:
 `teacher`, `friend`, `shopkeeper`, `waiter`, `police`, `mother`, `doctor`.
 
 ---
@@ -142,7 +142,7 @@ average down. Accent is not penalised, per section 8 of the spec.
 
 | # | Requirement | Status |
 |---|---|---|
-| 1 | Daily lesson system | Done — 8 lessons, next-unfinished is served each day |
+| 1 | Daily lesson system | Done — 10 lessons over 9 locations, next-unfinished is served each day |
 | 2 | Lessons stored in JSON | Done — `data/lessons/`, validated on load |
 | 3 | Interactive conversation, speak or type | Done — Web Speech API + typing fallback |
 | 4 | Response evaluation (not exact match) | Done — see above |
@@ -202,11 +202,41 @@ data/
   lessons/               lesson content + manifest
   config/scoring.json    all scoring knobs
 tools/serve.mjs          dev server
+tools/build-character.html   merge per-animation FBX into one character .glb
+tools/fbx-to-glb.html        FBX prop -> centred, scaled .glb
+tools/build-props.mjs        OBJ / .blend / .glb scenery -> small .glb (npm run build:props)
+tools/blend.mjs              read-only .blend parser used by build-props
+tools/optimize-models.mjs    shrink character .glb for mobile    (npm run optimize)
 tests/evaluator.test.mjs scoring tests
 ```
 
+Only `spoken_game/*/optimized/` is ever downloaded by the game. The raw artist
+sources next to it are kept for rebuilds and do not need to be deployed.
+
 Controls: **WASD / arrows** or the on-screen stick to walk, **E** or the Talk
 button to start a conversation, **M** to toggle the microphone, **Esc** to leave.
+
+---
+
+## Third-party assets
+
+Everything under `spoken_game/props/` came from outside the project. Licences
+differ, and two of them place conditions on shipping the game.
+
+| Asset | Used in | Licence | Obligation |
+|---|---|---|---|
+| "Isometric Hospital Room" by **graphyTV**, Blend Swap #89028 | hospital ward | CC BY 3.0 | **Attribution required.** Credited on the Settings screen and here. |
+| "Bookshelf" by Doug C, Blend Swap #66550 | classroom shelves | CC0 (public domain) | None |
+| `eb_house_plant_01` by Ernesto Bezera | classroom plant | **"NOT FOR COMMERCIAL USE"** | **Unresolved** — see below |
+| `fountain.fbx`, `bus.obj` + livery, `bus_stop.blend` | park, bus stop | supplied by the client | client to confirm |
+
+> **The plant is a problem for a paid delivery.** Its `READ_ME.txt` opens with
+> "NOT FOR COMMERCIAL USE". The build pipeline does not care which plant it is,
+> so swapping in a differently-licensed model and re-running
+> `npm run build:props` is a one-line change.
+
+If the hospital ward is ever removed, the Settings credit for it should go too —
+it exists to satisfy that model's licence.
 
 ---
 

@@ -54,7 +54,13 @@
   background: linear-gradient(180deg, #ffd24a, #f59e0b);
   transition: transform .18s ease;
 }
-.menu-label { font-size: clamp(21px, 3.2vw, 33px); font-weight: 700; letter-spacing: .01em; line-height: 1.06; }
+/* Labels are written in Title Case in Menu.js (screen readers spell out
+   ALL-CAPS text); the uppercase look is presentation only, matching the logo
+   and the rest of the shell. */
+.menu-label {
+  font-size: clamp(21px, 3.2vw, 33px); font-weight: 700; line-height: 1.06;
+  text-transform: uppercase; letter-spacing: .03em;
+}
 .menu-sub { font-size: 12px; font-weight: 700; color: #64748b; letter-spacing: .04em; }
 .menu-item.is-big .menu-label {
   font-size: clamp(34px, 5.6vw, 58px); font-weight: 800;
@@ -194,6 +200,8 @@
 }
 .loc-name { font-size: 17px; font-weight: 800; color: var(--ink); margin-top: 9px; }
 .loc-blurb { font-size: 11.5px; font-weight: 700; color: #94a3b8; padding: 0 8px; }
+/* Which day(s) of the course happen here - a place can hold more than one. */
+.loc-days { font-size: 10.5px; font-weight: 800; color: #64748b; letter-spacing: .04em; margin-top: 4px; }
 
 @media (max-width: 640px) {
   .menu-left { width: 100%; background: linear-gradient(100deg, rgba(7,13,28,.95) 40%, rgba(7,13,28,.62) 100%); }
