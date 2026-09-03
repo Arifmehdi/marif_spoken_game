@@ -6,9 +6,12 @@
   "type": "module",
   "scripts": {
     "start": "node tools/serve.mjs",
-    "test": "node tests/evaluator.test.mjs",
+    "test": "node tests/evaluator.test.mjs && node tests/lessons.test.mjs",
     "optimize": "node tools/optimize-models.mjs",
-    "build:props": "node tools/build-props.mjs"
+    "build:props": "node tools/build-props.mjs",
+    "build:lessons": "node tools/build-lessons.mjs",
+    "check:lessons": "node tools/build-lessons.mjs --check",
+    "admin:password": "node tools/set-admin-password.mjs"
   },
   "devDependencies": {
     "jimp": "^1.6.1"

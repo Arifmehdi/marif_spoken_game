@@ -9,8 +9,19 @@
  * original artwork sheet presents them - and the baked background disappears.
  */
 import { LOCATION_META } from "../world/LocationFactory.js";
+import { BADGES, evaluateBadges } from "../progress/Badges.js";
 
 export const ART = "spoken_game/";
+
+/**
+ * The three levels, in order. `id` is what the lesson JSON stores; `label` is
+ * what the player reads - the client asked for "Difficult" rather than "Hard".
+ */
+export const LEVELS = [
+  { id: "easy", label: "Easy" },
+  { id: "medium", label: "Medium" },
+  { id: "hard", label: "Difficult" }
+];
 
 /**
  * `model` names an entry in ModelLibrary. Every character now has its own
@@ -120,16 +131,22 @@ export class Menu {
 
   /* ------------------------------------------------------------ main menu */
 
-  main(progress, lesson, handlers) {
+  main(progress, lesson, manifest, handlers) {
     const hero = this.characterById(progress.data.characterId);
     const pct = Math.round((progress.xpIntoLevel / progress.xpForLevel) * 100);
+    const earnedBadges = evaluateBadges(progress.badgeStats(manifest)).filter((b) => b.earned);
+    const badgeCount = earnedBadges.length;
+    // BADGES runs easiest to hardest, so the last earned entry is the best one held.
+    const topBadge = earnedBadges[earnedBadges.length - 1] || null;
 
     const items = [
       { id: "play", label: "Play", sub: lesson ? "Day " + lesson.day + " · " + lesson.topic : "Start today's lesson", big: true },
       { id: "free", label: "Free Play", sub: "Any place, any time" },
+      { id: "store", label: "Store", sub: "Spend your coins" },
       { id: "character", label: "Character", sub: hero.name },
       { id: "location", label: "Location", sub: "Choose where to go" },
       { id: "progress", label: "Progress", sub: "Scores and streak" },
+      { id: "badges", label: "Badges", sub: badgeCount + " of " + BADGES.length + " earned" },
       { id: "settings", label: "Settings", sub: "Voice and accent" }
     ];
 
@@ -153,7 +170,10 @@ export class Menu {
           '<div class="hero-card">' +
             '<div class="hero-portrait"><img src="' + ART + hero.art + '" alt="' + esc(hero.name) + '" /></div>' +
             '<div class="hero-meta">' +
-              '<div class="hero-name">' + esc(progress.data.playerName) + "</div>" +
+              '<div class="hero-name">' +
+                (topBadge ? '<img class="hero-badge" src="' + ART + ICONS[topBadge.icon] + '" title="' + esc(topBadge.name) + '" alt="" />' : "") +
+                esc(progress.data.playerName) +
+              "</div>" +
               '<div class="hero-level">Level ' + progress.level + "</div>" +
               '<div class="hero-xp"><span style="width:' + pct + '%"></span></div>' +
               '<div class="hero-xp-text">' + progress.xpIntoLevel + " / " + progress.xpForLevel + " XP</div>" +
@@ -222,7 +242,14 @@ export class Menu {
    * @param {boolean} free  Free Play: every place is open and every card shows
    *   the conversation waiting there. Otherwise places unlock day by day.
    */
-  locationSelect(progress, manifest, currentId, todayLocation, { onTravel, onBack, free = false }) {
+  /**
+   * @param {object} opts
+   *   free   - Free Play: choose a level, then a place, and play that one
+   *   level  - which level Free Play is showing
+   *   onLevel- called when the player switches level
+   */
+  locationSelect(progress, manifest, currentId, todayLocation,
+                 { onTravel, onBack, onLevel, free = false, level = "easy" }) {
     /*
      * One card per PLACE, but a place can hold more than one day - home has
      * both day 6 and day 7. Keeping only the first made day 7 invisible: the
@@ -242,6 +269,56 @@ export class Menu {
     Object.keys(daysAt).forEach((id) => { firstDay[id] = daysAt[id][0]; });
     const nextDay = progress.completedLessonIds().length + 1;
 
+    /*
+     * Free Play lists LESSONS, not places.
+     *
+     * Keying the grid on the location hid any second conversation set in the
+     * same place - home has two at every level, and only the later one showed.
+     * One card per lesson means every conversation in the game can be reached,
+     * and each card carries a single short line: its own topic.
+     */
+    if (free) {
+      const picks = manifest.lessons
+        .filter((l) => l.difficulty === level)
+        .sort((a, b) => a.day - b.day);
+
+      const cards = picks.map((entry) => {
+        const meta = LOCATION_META[entry.location];
+        if (!meta) return "";
+        const played = progress.lessonRecord("day_" + String(entry.day).padStart(3, "0"));
+        return '<button class="loc-card' + (entry.location === currentId ? " is-here" : "") +
+            '" data-day="' + entry.day + '" data-loc="' + entry.location + '">' +
+          '<div class="loc-art"><img src="' + ART + meta.art + '" alt="' + esc(meta.label) + '" />' +
+            (played ? '<div class="loc-badge loc-badge-done">' + played.bestScore + "%</div>" : "") +
+            (entry.location === currentId ? '<div class="loc-here">You are here</div>' : "") +
+          "</div>" +
+          '<div class="loc-name">' + esc(meta.label) + "</div>" +
+          '<div class="loc-blurb">' + esc(entry.topic) + "</div>" +
+        "</button>";
+      }).join("");
+
+      this.render("location",
+        '<div class="sheet sheet-wide">' +
+          '<button class="sheet-back" data-act="back">‹ Back</button>' +
+          '<h2 class="sheet-title">Free Play</h2>' +
+          '<p class="sheet-sub">Choose how hard you want it, then pick a conversation.</p>' +
+          '<div class="level-row">' + LEVELS.map((l) =>
+            '<button class="level-btn' + (l.id === level ? " is-on" : "") +
+              '" data-level="' + l.id + '">' + l.label + "</button>").join("") + "</div>" +
+          '<div class="loc-grid">' + (cards || '<p class="sheet-sub">Nothing at this level yet.</p>') + "</div>" +
+        "</div>");
+
+      this.root.querySelector('[data-act="back"]').addEventListener("click", onBack);
+      this.bindEscape(onBack);
+      this.root.querySelectorAll(".level-btn").forEach((btn) => {
+        btn.addEventListener("click", () => onLevel && onLevel(btn.dataset.level));
+      });
+      this.root.querySelectorAll(".loc-card").forEach((tile) => {
+        tile.addEventListener("click", () => onTravel(tile.dataset.loc, Number(tile.dataset.day)));
+      });
+      return;
+    }
+
     const tiles = Object.keys(LOCATION_META).map((id) => {
       const meta = LOCATION_META[id];
       const day = firstDay[id];
@@ -251,9 +328,7 @@ export class Menu {
       const done = day != null &&
         progress.lessonRecord("day_" + String(day).padStart(3, "0"));
 
-      const badge = isToday ? '<div class="loc-badge">TODAY</div>'
-        : free && done ? '<div class="loc-badge loc-badge-done">' + done.bestScore + "%</div>"
-        : "";
+      const badge = isToday ? '<div class="loc-badge">TODAY</div>' : "";
 
       return '<button class="loc-card' + (locked ? " is-locked" : "") +
           (id === currentId ? " is-here" : "") + (isToday ? " is-today" : "") +
@@ -264,22 +339,20 @@ export class Menu {
           (id === currentId ? '<div class="loc-here">You are here</div>' : "") +
         "</div>" +
         '<div class="loc-name">' + esc(meta.label) + "</div>" +
-        '<div class="loc-blurb">' + esc(free && topicsAt[id]
-          ? topicsAt[id].join(" · ")
-          : meta.blurb) + "</div>" +
-        // Spell out which days live here. Without it a place holding two
-        // lessons only ever advertised the earlier one.
-        (days.length ? '<div class="loc-days">Day ' + days.join(" &amp; ") + "</div>" : "") +
+        '<div class="loc-blurb">' + esc(meta.blurb) + "</div>" +
+        // How much is set here. Listing all six days a place can now hold was
+        // longer than the card, so it is a count once there is more than one -
+        // Free Play lists them individually, which is where you choose anyway.
+        (days.length ? '<div class="loc-days">' +
+          (days.length === 1 ? "Day " + days[0] : days.length + " lessons") + "</div>" : "") +
       "</button>";
     }).join("");
 
     this.render("location",
       '<div class="sheet sheet-wide">' +
         '<button class="sheet-back" data-act="back">‹ Back</button>' +
-        '<h2 class="sheet-title">' + (free ? "Free Play" : "Where do you want to go?") + "</h2>" +
-        '<p class="sheet-sub">' + (free
-          ? "Pick any place and practise its conversation as many times as you like."
-          : "Travel to a place, find someone, and start talking.") + "</p>" +
+        '<h2 class="sheet-title">Where do you want to go?</h2>' +
+        '<p class="sheet-sub">Travel to a place, find someone, and start talking.</p>' +
         '<div class="loc-grid">' + tiles + "</div>" +
       "</div>");
 
@@ -287,6 +360,50 @@ export class Menu {
     this.bindEscape(onBack);
     this.root.querySelectorAll(".loc-card").forEach((tile) => {
       tile.addEventListener("click", () => onTravel(tile.dataset.loc));
+    });
+  }
+
+  /* --------------------------------------------------------------- store */
+
+  /**
+   * @param {object} config the loaded data/config/scoring.json - `store` holds
+   *   the item list, so pricing changes need no code changes.
+   */
+  store(progress, config, { onBack, onBuy }) {
+    const owned = {
+      streakFreeze: progress.streakFreezes,
+      hintPack: progress.hintCredits
+    };
+
+    const cards = Object.entries(config.store || {}).map(([id, item]) => {
+      const afford = progress.coins >= item.price;
+      const have = owned[id];
+      return '<div class="store-card">' +
+        '<div class="store-icon">' + item.icon + "</div>" +
+        '<div class="store-name">' + esc(item.name) + "</div>" +
+        '<div class="store-desc">' + esc(item.desc) + "</div>" +
+        (have != null ? '<div class="store-owned">You have ' + have + "</div>" : "") +
+        '<button class="store-buy' + (afford ? "" : " is-off") + '" data-id="' + id + '"' + (afford ? "" : " disabled") + ">" +
+          icon("coin") + "<span>" + item.price + "</span>" +
+        "</button>" +
+      "</div>";
+    }).join("");
+
+    this.render("store",
+      '<div class="sheet sheet-wide">' +
+        '<button class="sheet-back" data-act="back">‹ Back</button>' +
+        '<h2 class="sheet-title">Store</h2>' +
+        '<p class="sheet-sub">Spend your coins on a little help.</p>' +
+        '<div class="currency-row store-balance">' +
+          '<div class="cur-pill">' + icon("coin") + "<b>" + progress.coins + "</b></div>" +
+        "</div>" +
+        '<div class="store-grid">' + cards + "</div>" +
+      "</div>");
+
+    this.root.querySelector('[data-act="back"]').addEventListener("click", onBack);
+    this.bindEscape(onBack);
+    this.root.querySelectorAll(".store-buy").forEach((btn) => {
+      btn.addEventListener("click", () => { if (!btn.disabled) onBuy(btn.dataset.id); });
     });
   }
 }

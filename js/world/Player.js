@@ -12,6 +12,19 @@ const WALK = 3.4;
 const RUN = 6.0;
 const RADIUS = 0.32;
 
+/*
+ * Dead bands around the two animation thresholds.
+ *
+ * A thumb resting near a boundary crosses it many times a second. Measured on a
+ * stick wavering around the run threshold: 14 walk/run flips in 1.5 seconds, and
+ * the cycle never got to play. A state change now needs a decisive push, and
+ * going back needs a decisive release.
+ */
+const MOVE_ON = 0.07;
+const MOVE_OFF = 0.04;
+const RUN_ON = WALK * 1.12;
+const RUN_OFF = WALK * 0.88;
+
 export class Player {
   constructor(style) {
     this.character = new Character("student", style ? { style } : undefined);
@@ -19,6 +32,9 @@ export class Player {
     this.velocity = new THREE.Vector3();
     this.facing = 0;
     this.frozen = false;
+    // Which side of each dead band we are currently on.
+    this.moving = false;
+    this.runningStride = false;
   }
 
   /**
@@ -64,7 +80,8 @@ export class Player {
     }
 
     const mag = Math.hypot(input.x, input.y);
-    if (mag > 0.06) {
+    this.moving = this.moving ? mag > MOVE_OFF : mag > MOVE_ON;
+    if (this.moving) {
       // Rotate the stick vector into camera space.
       const sin = Math.sin(cameraYaw), cos = Math.cos(cameraYaw);
       const dx = input.x * cos - input.y * sin;
@@ -75,9 +92,20 @@ export class Player {
       this.facing = Math.atan2(dx, dz);
       // Pick the animation from the speed actually being travelled, so a latched
       // run on a half-pushed stick never plays a run cycle at walking pace.
-      this.character.setState(speed > WALK ? "run" : "walk");
+      // The Run button decides IF a run is possible; the stick decides whether
+      // it is worth playing the run cycle. Gating on `running` matters: at a
+      // full stick the WALK speed is 3.4, which on its own sits above any
+      // sensible drop-out threshold, so a speed-only test left the character
+      // running after the button was released.
+      this.runningStride = running &&
+        (this.runningStride ? speed > RUN_OFF : speed > RUN_ON);
+      this.character.setState(this.runningStride ? "run" : "walk");
+      // Cycle the legs at the rate the body is actually travelling.
+      this.character.setStride(speed / (this.runningStride ? RUN : WALK));
     } else {
       this.velocity.multiplyScalar(0.0001);
+      this.runningStride = false;
+      this.character.setStride(1);
       this.character.setState("idle");
     }
 

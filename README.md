@@ -43,18 +43,20 @@ node tests/evaluator.test.mjs
 This is the core requirement from section 11 of the specification. The
 conversation engine and the lesson content are completely separate.
 
-1. Create `data/lessons/day_009.json`
-2. Add one line to `data/lessons/manifest.json`
+1. Create `data/lessons/day_031.json` (or write it through the admin page at
+   `/admin/`, which does this for you — see `docs/ADMIN.md`)
+2. Run `npm run build:lessons`, which rebuilds `manifest.json` from whatever
+   `day_*.json` files are on disk
 
 That is the whole process. The engine picks it up on the next reload.
 
 ```json
 {
-  "lesson_id": "day_009",
-  "day": 9,
+  "lesson_id": "day_031",
+  "day": 31,
   "topic": "At the Bus Stop",
   "location": "city",
-  "difficulty": "beginner",
+  "difficulty": "easy",
   "characters": [{ "id": "driver", "name": "Mr. Khan", "role": "police" }],
   "intro": "Ask the driver which bus goes to the market.",
   "vocabulary": ["ticket", "bus", "how much"],
@@ -81,7 +83,7 @@ That is the whole process. The engine picks it up on the next reload.
 | `prompt` | Shown to the student as the instruction |
 | `expected` | Accepted answers. **Any** of them scores full marks |
 | `keywords` | Required ideas. A nested array means "any one of these" |
-| `expects` | `state`, `question`, `yes_no`, `number`, `time`, `name`, `place` — checks the *kind* of answer |
+| `expects` | `state`, `question`, `yes_no`, `number`, `time`, `name`, `place`, `closing`, `request` — checks the *kind* of answer |
 | `slot` | Marks an open slot: the student may use their own name/town/food without being marked wrong |
 | `forbidden` | Words that should cost marks |
 | `hint` | Revealed by the Hint button |
@@ -142,7 +144,7 @@ average down. Accent is not penalised, per section 8 of the spec.
 
 | # | Requirement | Status |
 |---|---|---|
-| 1 | Daily lesson system | Done — 10 lessons over 9 locations, next-unfinished is served each day |
+| 1 | Daily lesson system | Done — 30 lessons (10 settings x easy/medium/hard), next-unfinished is served each day |
 | 2 | Lessons stored in JSON | Done — `data/lessons/`, validated on load |
 | 3 | Interactive conversation, speak or type | Done — Web Speech API + typing fallback |
 | 4 | Response evaluation (not exact match) | Done — see above |
@@ -184,7 +186,7 @@ js/
     InputManager.js      keyboard and on-screen thumbstick
   world/
     CharacterFactory.js  procedural cartoon characters
-    LocationFactory.js   the 7 places
+    LocationFactory.js   the 9 places
     Player.js            movement and collision
     NPC.js               proximity, markers, facing
   conversation/
@@ -201,13 +203,18 @@ js/
 data/
   lessons/               lesson content + manifest
   config/scoring.json    all scoring knobs
+docs/ADMIN.md            how to add a lesson (no code changes)
 tools/serve.mjs          dev server
+admin/index.html         admin page: sign in, write a lesson, publish it
+tools/lesson-format.mjs      the plain-text lesson format
+tools/build-lessons.mjs      validate lessons, rebuild the manifest (npm run build:lessons)
 tools/build-character.html   merge per-animation FBX into one character .glb
 tools/fbx-to-glb.html        FBX prop -> centred, scaled .glb
 tools/build-props.mjs        OBJ / .blend / .glb scenery -> small .glb (npm run build:props)
 tools/blend.mjs              read-only .blend parser used by build-props
 tools/optimize-models.mjs    shrink character .glb for mobile    (npm run optimize)
 tests/evaluator.test.mjs scoring tests
+tests/lessons.test.mjs   every lesson graded against its own model answers
 ```
 
 Only `spoken_game/*/optimized/` is ever downloaded by the game. The raw artist

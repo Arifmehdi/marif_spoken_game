@@ -1,0 +1,134 @@
+{
+  "lesson_id": "day_016",
+  "day": 16,
+  "topic": "Helping at Home",
+  "location": "home",
+  "difficulty": "medium",
+  "characters": [
+    {
+      "id": "mother",
+      "name": "Mummy",
+      "role": "mother"
+    }
+  ],
+  "intro": "Your mother is busy in the kitchen. Offer to help her.",
+  "vocabulary": [
+    "can I help",
+    "shall I",
+    "wash",
+    "clean",
+    "of course"
+  ],
+  "conversation": [
+    {
+      "speaker": "mother",
+      "text": "There is so much work today!"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Offer to help your mother.",
+      "expected": [
+        "Can I help you?",
+        "Shall I help you, Mummy?",
+        "Let me help you."
+      ],
+      "keywords": [
+        [
+          "help"
+        ]
+      ],
+      "expects": "question",
+      "hint": "Try: \"Can I help you?\"",
+      "points": 20
+    },
+    {
+      "speaker": "mother",
+      "text": "That is kind of you. Could you clean the table?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Agree to clean the table.",
+      "expected": [
+        "Yes, I will clean the table.",
+        "Of course, I will clean it.",
+        "Sure, I will do it now."
+      ],
+      "keywords": [
+        [
+          "clean",
+          "will"
+        ]
+      ],
+      "expects": "yes_no",
+      "hint": "Try: \"Yes, I will clean the table.\"",
+      "points": 20
+    },
+    {
+      "speaker": "mother",
+      "text": "Thank you. After that, could you wash the vegetables?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Ask where the vegetables are.",
+      "expected": [
+        "Where are the vegetables?",
+        "Where can I find the vegetables?",
+        "Where did you keep the vegetables?"
+      ],
+      "keywords": [
+        [
+          "where",
+          "vegetables"
+        ]
+      ],
+      "expects": "question",
+      "hint": "Try: \"Where are the vegetables?\"",
+      "points": 20
+    },
+    {
+      "speaker": "mother",
+      "text": "They are in the basket near the window."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say that you have finished the work.",
+      "expected": [
+        "I have finished.",
+        "I have finished the work.",
+        "It is done, Mummy."
+      ],
+      "keywords": [
+        [
+          "finished",
+          "done"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I have finished the work.\"",
+      "points": 20
+    },
+    {
+      "speaker": "mother",
+      "text": "You are a great help. Thank you, my dear."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say that you were happy to help.",
+      "expected": [
+        "I am happy to help.",
+        "It was no problem.",
+        "I like helping you."
+      ],
+      "keywords": [
+        [
+          "happy",
+          "help",
+          "helping"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I am happy to help.\"",
+      "points": 20
+    }
+  ]
+}

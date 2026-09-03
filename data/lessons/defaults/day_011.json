@@ -1,0 +1,133 @@
+{
+  "lesson_id": "day_011",
+  "day": 11,
+  "topic": "Asking the Teacher for Help",
+  "location": "school",
+  "difficulty": "medium",
+  "characters": [
+    {
+      "id": "teacher",
+      "name": "Mrs. Sharma",
+      "role": "teacher"
+    }
+  ],
+  "intro": "You did not understand today's lesson. Ask your teacher for help.",
+  "vocabulary": [
+    "I did not understand",
+    "could you",
+    "explain",
+    "repeat",
+    "question"
+  ],
+  "conversation": [
+    {
+      "speaker": "teacher",
+      "text": "You look worried. Is everything all right?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Tell the teacher you did not understand the lesson.",
+      "expected": [
+        "I did not understand the lesson.",
+        "I did not understand today's lesson.",
+        "Sorry, I did not understand it."
+      ],
+      "keywords": [
+        [
+          "understand"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I did not understand the lesson.\"",
+      "points": 20
+    },
+    {
+      "speaker": "teacher",
+      "text": "That is fine. Which part was difficult?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say which part was difficult for you.",
+      "expected": [
+        "The last question was difficult.",
+        "The second part was difficult for me.",
+        "The maths problem was difficult."
+      ],
+      "keywords": [
+        [
+          "difficult",
+          "part",
+          "question"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"The last question was difficult.\"",
+      "points": 20,
+      "slot": "topic"
+    },
+    {
+      "speaker": "teacher",
+      "text": "Would you like me to explain it again?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Politely ask the teacher to explain it again.",
+      "expected": [
+        "Yes, could you explain it again please?",
+        "Yes please, could you explain it again?",
+        "Please explain it again."
+      ],
+      "keywords": [
+        [
+          "explain"
+        ]
+      ],
+      "expects": "yes_no",
+      "hint": "Try: \"Yes, could you explain it again please?\"",
+      "points": 20
+    },
+    {
+      "speaker": "teacher",
+      "text": "Of course. Come to my desk after the bell."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Ask what time you should come.",
+      "expected": [
+        "What time should I come?",
+        "When should I come?",
+        "At what time shall I come?"
+      ],
+      "keywords": [
+        [
+          "time",
+          "when"
+        ]
+      ],
+      "expects": "question",
+      "hint": "Try: \"What time should I come?\"",
+      "points": 20
+    },
+    {
+      "speaker": "teacher",
+      "text": "Come at four o'clock. I will be here."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Thank the teacher for helping you.",
+      "expected": [
+        "Thank you for helping me.",
+        "Thank you very much, teacher.",
+        "Thank you, I will come at four."
+      ],
+      "keywords": [
+        [
+          "thank"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"Thank you for helping me.\"",
+      "points": 20
+    }
+  ]
+}

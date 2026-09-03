@@ -62,6 +62,31 @@
     "maxStreakBonusXp": 50
   },
   "xpPerLevel": 250,
+  "dailyReward": {
+    "_comment": "One entry per day of a 7-day cycle. Missing a day resets to day 1. The last day also grants a Streak Freeze.",
+    "coins": [10, 15, 20, 25, 30, 40, 60]
+  },
+  "store": {
+    "streakFreeze": {
+      "name": "Streak Freeze",
+      "icon": "🧊",
+      "price": 60,
+      "desc": "Protects your streak if you miss one day."
+    },
+    "hintPack": {
+      "name": "Hint Pack",
+      "icon": "💡",
+      "price": 30,
+      "grants": 3,
+      "desc": "3 credits. Each one fills in the model answer during a conversation."
+    },
+    "skipLesson": {
+      "name": "Skip Ahead",
+      "icon": "⏭",
+      "price": 80,
+      "desc": "Marks today's lesson complete and unlocks the next one."
+    }
+  },
   "synonymGroups": [
     [
       "fine",

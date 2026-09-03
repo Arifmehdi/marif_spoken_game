@@ -1,0 +1,137 @@
+{
+  "lesson_id": "day_019",
+  "day": 19,
+  "topic": "Buying a Ticket",
+  "location": "transport",
+  "difficulty": "medium",
+  "characters": [
+    {
+      "id": "conductor",
+      "name": "Mr. Das",
+      "role": "police"
+    }
+  ],
+  "intro": "You are travelling to the market. Buy a bus ticket from the conductor.",
+  "vocabulary": [
+    "one ticket",
+    "how much",
+    "change",
+    "next stop",
+    "get down"
+  ],
+  "conversation": [
+    {
+      "speaker": "conductor",
+      "text": "Tickets, please. Where are you going?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say where you are going.",
+      "expected": [
+        "I am going to the market.",
+        "To the market, please.",
+        "I want to go to the market."
+      ],
+      "keywords": [
+        [
+          "market",
+          "going"
+        ]
+      ],
+      "expects": "place",
+      "hint": "Try: \"I am going to the market.\"",
+      "points": 20,
+      "slot": "place"
+    },
+    {
+      "speaker": "conductor",
+      "text": "One ticket to the market. That is fifteen rupees."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Give him the money and ask for change.",
+      "expected": [
+        "Here is twenty rupees.",
+        "Here you are. Can I have the change?",
+        "Here is the money, please give me change."
+      ],
+      "keywords": [
+        [
+          "here",
+          "change",
+          "rupees"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"Here is twenty rupees.\"",
+      "points": 20
+    },
+    {
+      "speaker": "conductor",
+      "text": "Here is your change and your ticket. Keep it safely."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Ask how many stops until the market.",
+      "expected": [
+        "How many stops is it?",
+        "How many stops until the market?",
+        "How many stops from here?"
+      ],
+      "keywords": [
+        [
+          "many",
+          "stops"
+        ]
+      ],
+      "expects": "number",
+      "hint": "Try: \"How many stops is it?\"",
+      "points": 20
+    },
+    {
+      "speaker": "conductor",
+      "text": "Four stops. I will tell you when we arrive."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Ask him to tell you when to get down.",
+      "expected": [
+        "Please tell me when to get down.",
+        "Could you tell me when to get down?",
+        "Please let me know when we arrive."
+      ],
+      "keywords": [
+        [
+          "tell",
+          "down",
+          "know"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"Please tell me when to get down.\"",
+      "points": 20
+    },
+    {
+      "speaker": "conductor",
+      "text": "This is your stop. Mind the step as you get down."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Thank the conductor and get down.",
+      "expected": [
+        "Thank you, sir.",
+        "Thank you very much.",
+        "Thanks, goodbye."
+      ],
+      "keywords": [
+        [
+          "thank",
+          "thanks"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"Thank you, sir.\"",
+      "points": 20
+    }
+  ]
+}

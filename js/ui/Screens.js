@@ -2,10 +2,14 @@
  * Screens - the full-screen panels: start, lesson brief, results, progress,
  * travel map and settings. All rendered into #screen-root.
  */
+import { LEVELS, ART, ICONS } from "./Menu.js";
 import { LOCATION_META } from "../world/LocationFactory.js";
+import { evaluateBadges } from "../progress/Badges.js";
 
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) =>
   ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+const dailyIcon = (key) => '<img class="dr-day-img" src="' + ART + ICONS[key] + '" alt="" />';
 
 const stars = (n, max = 5) => {
   let out = "";
@@ -193,7 +197,8 @@ export class Screens {
       (r.correctness >= 75 ? "good" : r.correctness >= 50 ? "ok" : "low") + '">' + r.correctness + "%</td></tr>").join("");
 
     const bonuses = award.bonuses.map((b) =>
-      '<div class="bonus-row"><span>' + esc(b.label) + "</span><span>+" + b.xp + " XP</span></div>").join("");
+      '<div class="bonus-row"><span>' + esc(b.label) + "</span><span>+" + b.xp + " XP</span></div>").join("") +
+      (award.usedStreakFreeze ? '<div class="bonus-row"><span>🧊 Streak Freeze used</span><span>Streak saved!</span></div>' : "");
 
     const stat = (label, val) =>
       val == null ? "" :
@@ -241,21 +246,141 @@ export class Screens {
     card.querySelector("#res-map").addEventListener("click", () => { this.hide(); onMap(); });
   }
 
+  /* ------------------------------------------------------- daily reward */
+
+  /** @param {object} preview from ProgressStore.previewDailyReward() */
+  dailyReward(preview, { onClaim }) {
+    const strip = preview.cycle.map((coins, i) => {
+      const dayNum = i + 1;
+      const state = dayNum < preview.day ? "done" : dayNum === preview.day ? "today" : "next";
+      const isLast = dayNum === preview.cycle.length;
+      return '<div class="dr-day dr-' + state + '">' +
+        '<div class="dr-day-num">Day ' + dayNum + "</div>" +
+        '<div class="dr-day-coin">' + dailyIcon(isLast ? "gift" : "coin") + "</div>" +
+        '<div class="dr-day-amt">' + coins + "</div>" +
+      "</div>";
+    }).join("");
+
+    const card = this.show(
+      '<div class="screen-hero">' +
+        '<h2 class="screen-title">Daily Reward</h2>' +
+        '<p class="screen-sub">Day ' + preview.day + " of " + preview.cycle.length +
+          " — come back tomorrow to keep it going.</p>" +
+      "</div>" +
+      '<div class="dr-strip">' + strip + "</div>" +
+      (preview.bonusFreeze
+        ? '<p class="screen-note">A full week! This one also gives you a Streak Freeze.</p>' : "") +
+      '<div class="screen-actions">' +
+        '<button class="btn btn-big btn-primary" id="dr-claim">Claim +' + preview.coins + " coins</button>" +
+      "</div>",
+      { dismissable: false });
+
+    card.querySelector("#dr-claim").addEventListener("click", () => { this.hide(); onClaim(); });
+  }
+
+  /* --------------------------------------------------------------- badges */
+
+  badges(progress, manifest) {
+    const evaluated = evaluateBadges(progress.badgeStats(manifest));
+    const earnedCount = evaluated.filter((b) => b.earned).length;
+    const next = evaluated.find((b) => !b.earned);
+
+    const bar = (value, goal) =>
+      '<div class="badge-bar"><div class="badge-bar-fill" style="width:' +
+        Math.round((value / goal) * 100) + '%"></div></div>' +
+      '<div class="badge-bar-text">' + value + " / " + goal + "</div>";
+
+    const nextBlock = next ? (
+      '<div class="badge-next">' +
+        '<div class="badge-next-kicker">Up next</div>' +
+        '<div class="badge-next-row">' +
+          '<img class="badge-next-icon" src="' + ART + ICONS[next.icon] + '" alt="" />' +
+          '<div class="badge-next-info">' +
+            '<div class="badge-next-name">' + esc(next.name) + "</div>" +
+            '<div class="badge-next-desc">' + esc(next.desc) + "</div>" +
+          "</div>" +
+        "</div>" +
+        bar(next.value, next.goal) +
+      "</div>"
+    ) : '<div class="badge-next badge-next-done">All badges earned — amazing work!</div>';
+
+    const cards = evaluated.map((b) =>
+      '<div class="badge-card' + (b.earned ? " is-earned" : "") + '">' +
+        '<div class="badge-icon"><img src="' + ART + ICONS[b.icon] + '" alt="" /></div>' +
+        '<div class="badge-name">' + esc(b.name) + "</div>" +
+        '<div class="badge-desc">' + esc(b.desc) + "</div>" +
+        (b.earned ? '<div class="badge-earned-tag">✓ Earned</div>' : bar(b.value, b.goal)) +
+      "</div>").join("");
+
+    this.show(
+      '<h2 class="screen-title">Badges</h2>' +
+      '<p class="screen-sub">' + earnedCount + " of " + evaluated.length + " earned</p>" +
+      nextBlock +
+      '<h4 class="section-h">All badges</h4>' +
+      '<div class="badge-grid">' + cards + "</div>" +
+      '<div class="screen-actions"><button class="btn btn-primary" id="badges-close">Close</button></div>'
+    ).querySelector("#badges-close").addEventListener("click", () => this.hide());
+  }
+
   /* ------------------------------------------------------------ progress */
 
   progressScreen(progress, manifest) {
     const o = progress.overview();
 
-    const history = manifest.lessons.map((entry) => {
-      const id = "day_" + String(entry.day).padStart(3, "0");
-      const rec = progress.lessonRecord(id);
-      const score = rec ? rec.bestScore : null;
-      return '<div class="hist-row' + (rec ? "" : " is-locked") + '">' +
-        '<span class="hist-day">Day ' + entry.day + "</span>" +
-        '<span class="hist-topic">' + esc(entry.topic) + "</span>" +
-        '<span class="hist-bar"><span class="hist-fill" style="width:' + (score || 0) + '%"></span></span>' +
-        '<span class="hist-score">' + (score == null ? "—" : score + "%") + "</span></div>";
-    }).join("");
+    /*
+     * Progress is now read one level at a time. With thirty lessons a single
+     * flat list says very little - "18 done" hides whether the student has
+     * finished the easy ten and stalled, or is picking one here and there. Each
+     * level gets its own ring, and the list below is grouped the same way.
+     */
+    const tiers = LEVELS.map((lv) => {
+      const entries = manifest.lessons.filter((l) => l.difficulty === lv.id);
+      const records = entries
+        .map((e) => progress.lessonRecord("day_" + String(e.day).padStart(3, "0")))
+        .filter(Boolean);
+      const done = records.length;
+      return {
+        ...lv, entries, done,
+        total: entries.length,
+        average: done ? Math.round(records.reduce((s, r) => s + r.bestScore, 0) / done) : null
+      };
+    });
+
+    // A ring reads as "how much of this level is finished" at a glance.
+    const R = 19;
+    const CIRCUMFERENCE = 2 * Math.PI * R;
+    const ring = (tier) => {
+      const fraction = tier.total ? tier.done / tier.total : 0;
+      const offset = CIRCUMFERENCE * (1 - fraction);
+      return '<div class="lvl-card lvl-' + tier.id + (tier.done ? "" : " is-empty") + '">' +
+        '<svg class="lvl-ring" viewBox="0 0 44 44" aria-hidden="true">' +
+          '<circle class="lvl-track" cx="22" cy="22" r="' + R + '" />' +
+          '<circle class="lvl-arc" cx="22" cy="22" r="' + R + '" ' +
+            'stroke-dasharray="' + CIRCUMFERENCE.toFixed(1) + '" ' +
+            'stroke-dashoffset="' + offset.toFixed(1) + '" />' +
+        "</svg>" +
+        '<div class="lvl-body">' +
+          '<div class="lvl-name">' + tier.label + "</div>" +
+          '<div class="lvl-count">' + tier.done + " of " + tier.total + " done</div>" +
+          '<div class="lvl-avg">' + (tier.average == null ? "not started" : tier.average + "% average") + "</div>" +
+        "</div>" +
+      "</div>";
+    };
+
+    const history = tiers.map((tier) =>
+      '<div class="hist-group">' +
+        '<div class="hist-head"><span class="lvl-dot lvl-' + tier.id + '"></span>' +
+          tier.label + '<span class="hist-head-count">' + tier.done + " / " + tier.total + "</span></div>" +
+        tier.entries.map((entry) => {
+          const rec = progress.lessonRecord("day_" + String(entry.day).padStart(3, "0"));
+          const score = rec ? rec.bestScore : null;
+          return '<div class="hist-row' + (rec ? "" : " is-locked") + '">' +
+            '<span class="hist-day">Day ' + entry.day + "</span>" +
+            '<span class="hist-topic">' + esc(entry.topic) + "</span>" +
+            '<span class="hist-bar"><span class="hist-fill" style="width:' + (score || 0) + '%"></span></span>' +
+            '<span class="hist-score">' + (score == null ? "—" : score + "%") + "</span></div>";
+        }).join("") +
+      "</div>").join("");
 
     const stat = (label, val) =>
       '<div class="stat"><div class="stat-bar"><div class="stat-fill" style="width:' + (val || 0) + '%"></div></div>' +
@@ -276,6 +401,9 @@ export class Screens {
         '<div class="result-kpi"><span>' + trend + "</span><small>improvement</small></div>" +
       "</div>" +
 
+      '<h4 class="section-h">By level</h4>' +
+      '<div class="lvl-grid">' + tiers.map(ring).join("") + "</div>" +
+
       '<h4 class="section-h">Speaking performance</h4>' +
       '<div class="stats">' +
         stat("Vocabulary", o.speaking.vocabulary) +
@@ -284,7 +412,7 @@ export class Screens {
         stat("Pronunciation", o.speaking.pronunciation) +
       "</div>" +
 
-      '<h4 class="section-h">Daily lessons</h4>' +
+      '<h4 class="section-h">Every lesson</h4>' +
       '<div class="hist">' + history + "</div>" +
 
       '<div class="screen-actions"><button class="btn btn-primary" id="prog-close">Close</button></div>')
@@ -345,6 +473,7 @@ export class Screens {
       '<p class="screen-credit">Hospital ward model: &ldquo;Isometric Hospital Room&rdquo; ' +
         "by graphyTV, Blend Swap, CC&nbsp;BY&nbsp;3.0.</p>" +
       '<div class="screen-actions">' +
+        '<a class="btn btn-ghost" href="guide/#play" target="_blank" rel="noopener" style="text-decoration:none">How to Play</a>' +
         '<button class="btn btn-danger" id="set-reset">Reset Progress</button>' +
         '<button class="btn btn-primary" id="set-close">Done</button>' +
       "</div>");

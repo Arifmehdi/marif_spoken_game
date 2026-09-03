@@ -1,0 +1,140 @@
+{
+  "lesson_id": "day_024",
+  "day": 24,
+  "topic": "A Problem with the Order",
+  "location": "restaurant",
+  "difficulty": "hard",
+  "characters": [
+    {
+      "id": "waiter",
+      "name": "Sanjay",
+      "role": "waiter"
+    }
+  ],
+  "intro": "The food that arrived is not what you ordered. Explain politely.",
+  "vocabulary": [
+    "excuse me",
+    "I ordered",
+    "this is not",
+    "could you check",
+    "no problem"
+  ],
+  "conversation": [
+    {
+      "speaker": "waiter",
+      "text": "Here is your food. Please enjoy your meal."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Politely say this is not what you ordered.",
+      "expected": [
+        "Excuse me, this is not what I ordered.",
+        "Sorry, I think this is not my order.",
+        "Excuse me, I did not order this."
+      ],
+      "keywords": [
+        [
+          "ordered",
+          "order"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"Excuse me, this is not what I ordered.\"",
+      "points": 20
+    },
+    {
+      "speaker": "waiter",
+      "text": "Oh! I am very sorry. What did you order?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say what you actually ordered.",
+      "expected": [
+        "I ordered rice and dal.",
+        "I asked for vegetable rice.",
+        "My order was rice and dal."
+      ],
+      "keywords": [
+        [
+          "ordered",
+          "order",
+          "asked"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I ordered rice and dal.\"",
+      "points": 20,
+      "slot": "food"
+    },
+    {
+      "speaker": "waiter",
+      "text": "Let me check with the kitchen. It will take ten minutes."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Ask whether it can be done faster, politely.",
+      "expected": [
+        "Could you make it a little faster, please?",
+        "Is it possible to be quicker?",
+        "Could it come sooner, please?"
+      ],
+      "keywords": [
+        [
+          "faster",
+          "quicker",
+          "sooner"
+        ]
+      ],
+      "expects": "question",
+      "hint": "Try: \"Could you make it a little faster, please?\"",
+      "points": 20
+    },
+    {
+      "speaker": "waiter",
+      "text": "I will ask the cook to hurry. Would you like some water while you wait?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Accept politely.",
+      "expected": [
+        "Yes, please. Thank you.",
+        "Yes, some water would be nice.",
+        "That would be very kind, thank you."
+      ],
+      "keywords": [
+        [
+          "yes",
+          "thank",
+          "please"
+        ]
+      ],
+      "expects": "yes_no",
+      "hint": "Try: \"Yes, please. Thank you.\"",
+      "points": 20
+    },
+    {
+      "speaker": "waiter",
+      "text": "Here is your correct order. Again, I am sorry for the mistake."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say it is fine and thank him.",
+      "expected": [
+        "It is fine, thank you.",
+        "No problem, thank you for fixing it.",
+        "That is all right, thank you."
+      ],
+      "keywords": [
+        [
+          "thank",
+          "fine",
+          "problem",
+          "right"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"It is fine, thank you.\"",
+      "points": 20
+    }
+  ]
+}

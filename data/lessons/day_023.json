@@ -1,0 +1,137 @@
+{
+  "lesson_id": "day_023",
+  "day": 23,
+  "topic": "Returning Something",
+  "location": "shop",
+  "difficulty": "hard",
+  "characters": [
+    {
+      "id": "shopkeeper",
+      "name": "Mr. Verma",
+      "role": "shopkeeper"
+    }
+  ],
+  "intro": "The bag you bought yesterday is torn. Ask the shopkeeper to change it.",
+  "vocabulary": [
+    "I bought this",
+    "it is torn",
+    "could you change it",
+    "receipt",
+    "yesterday"
+  ],
+  "conversation": [
+    {
+      "speaker": "shopkeeper",
+      "text": "Good morning. Is there a problem?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Explain that you bought this here yesterday.",
+      "expected": [
+        "I bought this bag here yesterday.",
+        "I bought this from your shop yesterday.",
+        "Yesterday I bought this bag here."
+      ],
+      "keywords": [
+        [
+          "bought",
+          "yesterday"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I bought this bag here yesterday.\"",
+      "points": 20
+    },
+    {
+      "speaker": "shopkeeper",
+      "text": "I see. What is wrong with it?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Explain what is wrong with it.",
+      "expected": [
+        "It is torn near the handle.",
+        "The zip is broken.",
+        "It is torn already."
+      ],
+      "keywords": [
+        [
+          "torn",
+          "broken"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"It is torn near the handle.\"",
+      "points": 20,
+      "slot": "problem"
+    },
+    {
+      "speaker": "shopkeeper",
+      "text": "That should not happen. Do you have the receipt?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say whether you have the receipt.",
+      "expected": [
+        "Yes, here is the receipt.",
+        "Yes, I have the receipt with me.",
+        "No, I do not have the receipt."
+      ],
+      "keywords": [
+        [
+          "receipt"
+        ]
+      ],
+      "expects": "yes_no",
+      "hint": "Try: \"Yes, here is the receipt.\"",
+      "points": 20
+    },
+    {
+      "speaker": "shopkeeper",
+      "text": "Thank you. Would you like your money back, or another bag?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say what you would prefer.",
+      "expected": [
+        "I would prefer another bag.",
+        "Could you change it for another one?",
+        "I would like my money back, please."
+      ],
+      "keywords": [
+        [
+          "prefer",
+          "another",
+          "money"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I would prefer another bag.\"",
+      "points": 20
+    },
+    {
+      "speaker": "shopkeeper",
+      "text": "Of course. I am sorry for the trouble."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Accept the apology politely.",
+      "expected": [
+        "That is all right, thank you.",
+        "No problem, thank you for helping.",
+        "It is fine, thank you."
+      ],
+      "keywords": [
+        [
+          "thank",
+          "right",
+          "fine",
+          "problem"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"That is all right, thank you.\"",
+      "points": 20
+    }
+  ]
+}

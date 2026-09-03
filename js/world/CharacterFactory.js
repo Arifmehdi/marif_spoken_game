@@ -29,6 +29,19 @@ const mat = (color, opts = {}) => new THREE.MeshLambertMaterial(Object.assign({ 
  * loose substring test because every exporter names clips differently.
  * Give the artist these words and the clips bind with no code change.
  */
+/**
+ * Extra cadence on top of matching the ground speed.
+ *
+ * Kept close to 1 on purpose. The walk clip already runs at a natural 2.1 steps
+ * a second; the rate that would cancel the skating outright is about 5x, which
+ * is 10 steps a second - a child vibrating. Removing the slide is not on the
+ * table at this movement speed, so the cadence stays believable and the real
+ * gain comes from it TRACKING the stick instead of being fixed.
+ *
+ * Turn this up for busier legs, down for a glidier walk.
+ */
+const STRIDE_BOOST = 1.15;
+
 const CLIP_ALIASES = {
   idle:   ["idle", "stand", "breath"],
   walk:   ["walk"],
@@ -370,7 +383,25 @@ export class Character {
     }
 
     if (this.activeAction) {
-      next.reset().setEffectiveWeight(1).fadeIn(0.22).play();
+      // Deliberately NOT reset(). reset() rewinds to frame 0, so every time the
+      // player stopped and set off again the walk restarted from its first
+      // frame - the foot snapping back mid-stride is what reads as "not
+      // smooth". These cycles loop, so picking up where the clock already is
+      // looks continuous.
+      //
+      // Walk and run keep separate clocks, and crossfading them out of phase
+      // slides the feet. Matching the normalised time first lines the strides
+      // up so one hands over to the other.
+      const loco = (a) => a === this.actions.walk || a === this.actions.run;
+      if (loco(next) && loco(this.activeAction)) {
+        const fromLength = this.activeAction.getClip().duration || 1;
+        const toLength = next.getClip().duration || 1;
+        next.time = (this.activeAction.time / fromLength) * toLength;
+      }
+
+      next.enabled = true;
+      if (!next.isRunning()) next.play();
+      next.fadeIn(0.22);
       this.activeAction.fadeOut(0.22);
     } else {
       // First clip: snap to full weight. Fading in from nothing means fading in
@@ -388,6 +419,24 @@ export class Character {
     if (this.state !== state) this.state = state;
   }
 
+  /**
+   * How fast the legs should cycle, as a fraction of the clip's normal rate.
+   *
+   * The clips are in-place Mixamo cycles authored for a full-size adult, and the
+   * students stand about 1.0 unit tall. Played at their own rate the planted
+   * foot travels 0.67 units per second while the body crosses the floor at 3.4
+   * - the feet skate, which is what reads as the walk not being smooth.
+   *
+   * Tying the cadence to the real ground speed fixes the worse half of it: the
+   * legs now speed up and slow down WITH the character, so a half-pushed stick
+   * ambles instead of sprinting on the spot. STRIDE_BOOST closes part of the
+   * remaining gap - not all of it, because a rate that removed the slide
+   * completely would have a child taking five steps a second.
+   */
+  setStride(rate) {
+    this.stride = Math.min(2.4, Math.max(0.35, rate * STRIDE_BOOST));
+  }
+
   /** Whole-body motion for rig-less models; real clips take over when present. */
   updateModel(dt) {
     if (this.refitFrames > 0) {
@@ -396,6 +445,11 @@ export class Character {
     }
 
     if (this.mixer) {
+      // Cadence is re-applied every frame: a crossfade can hand over to a clip
+      // that was last used at a different speed.
+      const rate = this.stride || 1;
+      if (this.actions.walk) this.actions.walk.setEffectiveTimeScale(rate);
+      if (this.actions.run) this.actions.run.setEffectiveTimeScale(rate);
       this.mixer.update(dt);
       // A rigged clip animates the body itself - adding a body-wide bob on top
       // would double up and look wrong.

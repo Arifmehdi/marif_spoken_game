@@ -1,0 +1,138 @@
+{
+  "lesson_id": "day_017",
+  "day": 17,
+  "topic": "Talking About the Weekend",
+  "location": "home",
+  "difficulty": "medium",
+  "characters": [
+    {
+      "id": "mother",
+      "name": "Mummy",
+      "role": "mother"
+    }
+  ],
+  "intro": "Your mother asks about your weekend plans. Tell her what you want to do.",
+  "vocabulary": [
+    "weekend",
+    "I want to",
+    "because",
+    "in the morning",
+    "maybe"
+  ],
+  "conversation": [
+    {
+      "speaker": "mother",
+      "text": "The weekend is coming. What would you like to do?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say what you would like to do at the weekend.",
+      "expected": [
+        "I would like to visit the park.",
+        "I want to play with my friends.",
+        "I would like to read a book."
+      ],
+      "keywords": [
+        [
+          "want",
+          "would",
+          "like"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I would like to visit the park.\"",
+      "points": 20,
+      "slot": "activity"
+    },
+    {
+      "speaker": "mother",
+      "text": "That sounds nice. Why do you want to do that?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Give a reason using the word because.",
+      "expected": [
+        "Because it is fun.",
+        "Because I like it very much.",
+        "Because my friends will be there."
+      ],
+      "keywords": [
+        [
+          "because"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"Because it is fun.\"",
+      "points": 20
+    },
+    {
+      "speaker": "mother",
+      "text": "All right. Shall we go in the morning or in the evening?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say which time you prefer.",
+      "expected": [
+        "In the morning, please.",
+        "I prefer the evening.",
+        "Morning is better for me."
+      ],
+      "keywords": [
+        [
+          "morning",
+          "evening"
+        ]
+      ],
+      "expects": "time",
+      "hint": "Try: \"In the morning, please.\"",
+      "points": 20
+    },
+    {
+      "speaker": "mother",
+      "text": "Good. Who would you like to take with us?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say who you want to bring.",
+      "expected": [
+        "I want to take my friend.",
+        "Can my sister come too?",
+        "I would like to bring my brother."
+      ],
+      "keywords": [
+        [
+          "friend",
+          "sister",
+          "brother"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I want to take my friend.\"",
+      "points": 20,
+      "slot": "person"
+    },
+    {
+      "speaker": "mother",
+      "text": "Then it is decided. It will be a lovely weekend."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say that you are excited about it.",
+      "expected": [
+        "I am very excited.",
+        "I am looking forward to it.",
+        "That is wonderful, thank you."
+      ],
+      "keywords": [
+        [
+          "excited",
+          "forward",
+          "wonderful"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I am very excited.\"",
+      "points": 20
+    }
+  ]
+}

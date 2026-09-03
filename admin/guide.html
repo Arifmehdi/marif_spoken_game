@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Admin Guide — Spoken English Adventure</title>
+<style>
+  :root {
+    --bg:#0e1a2f; --card:#122540; --line:#22304d;
+    --ink:#e9eef7; --dim:#93a2bf; --dimmer:#5f6f8f;
+    --blue:#3b82f6; --green:#4ade80; --amber:#fbbf24;
+    --font: "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; font-family:var(--font); background:var(--bg); color:var(--ink);
+    line-height:1.6; -webkit-font-smoothing:antialiased;
+  }
+  a { color:var(--blue); }
+  img { max-width:100%; display:block; }
+
+  header.top {
+    position:sticky; top:0; z-index:50; background:rgba(14,26,47,.92);
+    backdrop-filter:blur(10px); border-bottom:1px solid var(--line);
+  }
+  .top-inner {
+    max-width:1040px; margin:0 auto; padding:16px 24px;
+    display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+  }
+  .brand { font-weight:800; font-size:16px; letter-spacing:.02em; white-space:nowrap; }
+  .brand span { color:var(--blue); }
+  .back { text-decoration:none; color:var(--dim); font-weight:700; font-size:13.5px; margin-left:auto; }
+  .back:hover { color:var(--ink); }
+
+  .hero { max-width:1040px; margin:0 auto; padding:56px 24px 8px; text-align:center; }
+  .hero h1 { font-size:clamp(28px,4.4vw,42px); margin:0 0 12px; font-weight:800; letter-spacing:-.01em; }
+  .hero p { color:var(--dim); font-size:17px; max-width:620px; margin:0 auto; }
+
+  main { max-width:1040px; margin:0 auto; padding:20px 24px 100px; }
+  .part-sub { color:var(--dim); font-size:15px; margin:40px 0 34px; max-width:640px; }
+
+  .step { display:grid; grid-template-columns:52px 1fr; gap:18px; margin:0 0 54px; }
+  .step-num {
+    width:40px; height:40px; border-radius:50%; display:grid; place-items:center;
+    font-weight:800; font-size:15px; color:#06131f; align-self:start;
+    background:linear-gradient(160deg,#93c5fd,#3b82f6);
+  }
+  .step h3 { margin:6px 0 8px; font-size:18px; }
+  .step p { margin:0 0 12px; color:#c7d2e6; font-size:14.5px; }
+  .step .shot {
+    margin-top:14px; border-radius:12px; overflow:hidden; border:1px solid var(--line);
+    box-shadow:0 12px 30px -12px rgba(0,0,0,.6); background:var(--card);
+  }
+  .step .shot img { width:100%; }
+  .shot-cap { font-size:12px; color:var(--dimmer); padding:9px 13px; border-top:1px solid var(--line); }
+
+  .note {
+    display:flex; gap:12px; background:var(--card); border:1px solid var(--line);
+    border-radius:12px; padding:14px 16px; margin:14px 0 0; font-size:13.5px; color:#c7d2e6;
+  }
+  .note .ico { font-size:18px; line-height:1; }
+  .note.tip { border-left:3px solid var(--green); }
+
+  pre.code {
+    background:#08111f; border:1px solid var(--line); border-radius:12px;
+    padding:16px 18px; overflow-x:auto; font-size:12.8px; line-height:1.65;
+    font-family:ui-monospace,Consolas,monospace; color:#d7e2f5;
+  }
+  pre.code .k { color:#7dd3fc; }
+  pre.code .s { color:#86efac; }
+  pre.code .c { color:#5f6f8f; }
+
+  table.fields { width:100%; border-collapse:collapse; margin:14px 0 4px; font-size:13px; }
+  table.fields th, table.fields td { text-align:left; padding:9px 12px; border-bottom:1px solid var(--line); }
+  table.fields th { color:var(--dim); font-weight:700; font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; }
+  table.fields code { background:#08111f; padding:2px 6px; border-radius:5px; font-size:12px; color:#93c5fd; }
+
+  .badge-row { display:flex; align-items:center; gap:10px; margin:2px 0 22px; flex-wrap:wrap; }
+  .badge {
+    display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:700;
+    padding:6px 12px; border-radius:8px; background:var(--card); border:1px solid var(--line); color:var(--dim);
+  }
+
+  footer {
+    max-width:1040px; margin:0 auto; padding:30px 24px 60px; color:var(--dimmer);
+    font-size:12.5px; text-align:center; border-top:1px solid var(--line); margin-top:50px;
+  }
+
+  #gate { min-height:100vh; display:none; place-items:center; padding:24px; text-align:center; color:var(--dim); }
+  #content { display:none; }
+</style>
+</head>
+<body>
+
+<!-- Shown only if signing in fails or takes a moment - this page never
+     renders its content until the same session check the editor uses passes. -->
+<div id="gate"><p>Checking your admin session…</p></div>
+
+<div id="content">
+  <header class="top">
+    <div class="top-inner">
+      <div class="brand">Spoken English Adventure <span>· Admin Guide</span></div>
+      <a class="back" href="./">&larr; Back to admin panel</a>
+    </div>
+  </header>
+
+  <div class="hero">
+    <h1>Managing the conversations,<br>in plain language.</h1>
+    <p>Everything you need to write, check and publish what the game teaches — no code, no developer needed.</p>
+  </div>
+
+  <main>
+    <p class="part-sub">
+      The admin page is where the game's conversations are written and published.
+      Everything below happens at <code>/admin/</code>, next to the game itself.
+    </p>
+
+    <div class="step">
+      <div class="step-num">1</div>
+      <div>
+        <h3>Sign in</h3>
+        <p>Open <code>/admin/</code> and enter the admin password. The password is checked by the
+        server, not the page, so there's nothing to configure in the browser — just sign in and go.</p>
+        <div class="shot">
+          <img src="../guide/images/admin-01-login.png" alt="Admin sign-in screen" loading="lazy" />
+          <div class="shot-cap">The admin sign-in gate.</div>
+        </div>
+        <div class="note"><span class="ico">🔑</span> Forgotten the password, or setting it up for the first time? Run <code>npm run admin:password -- "your password"</code> from the project folder.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div>
+        <h3>Find the conversation you want</h3>
+        <p>The list on the left shows every conversation currently in the game, grouped under
+        <b>Easy</b>, <b>Medium</b> and <b>Difficult</b>. Click any of them to load it straight into the
+        editor as plain text — no JSON to read. <b>+ New conversation</b> starts a blank one on the next
+        free day.</p>
+        <div class="shot">
+          <img src="../guide/images/admin-02-editor.png" alt="Admin editor showing the conversation list, script, and live preview" loading="lazy" />
+          <div class="shot-cap">The full editor: conversation list, script, and a live preview of exactly what students will see.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">3</div>
+      <div>
+        <h3>Write the conversation as plain text</h3>
+        <p>Every conversation follows the same simple pattern: a few header lines, then one block per
+        question. You don't need to know JSON — the page converts this automatically.</p>
+        <pre class="code"><span class="c">topic:      </span>At the Library
+<span class="c">location:   </span>school
+<span class="c">level:      </span>medium
+<span class="c">character:  </span>Mrs. Sharma | teacher
+<span class="c">intro:      </span>You want to borrow a book. Ask the librarian for help.
+<span class="c">vocabulary: </span>borrow, return, shelf, library card
+
+<span class="k">npc:</span>  Good afternoon. Are you looking for something?
+
+<span class="k">ask:</span>  Say that you want to borrow a book.
+<span class="k">ok:</span>   <span class="s">I want to borrow a book.</span>
+<span class="k">ok:</span>   <span class="s">I would like to borrow a book, please.</span>
+<span class="k">key:</span>  borrow
+<span class="k">type:</span> state
+<span class="k">hint:</span> Try: "I want to borrow a book."</pre>
+        <table class="fields">
+          <tr><th>Line</th><th>What it means</th></tr>
+          <tr><td><code>npc:</code></td><td>A line the character says</td></tr>
+          <tr><td><code>ask:</code></td><td>What the student is asked to do</td></tr>
+          <tr><td><code>ok:</code></td><td>An accepted answer — repeat it for every wording you'll take. The first is the model answer shown as the hint</td></tr>
+          <tr><td><code>key:</code></td><td>A required idea. Commas mean "any of these"</td></tr>
+          <tr><td><code>type:</code></td><td>Tunes how the answer is judged — <code>state</code>, <code>question</code>, <code>yes_no</code>, <code>number</code>, <code>time</code>, <code>name</code>, <code>place</code>, <code>closing</code> or <code>request</code></td></tr>
+          <tr><td><code>hint:</code></td><td>Shown by the Hint button</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">4</div>
+      <div>
+        <h3>Check it, then publish</h3>
+        <p><b>Check</b> validates the whole conversation and shows the preview panel on the right — exactly
+        what a student will see and hear, with the points and required words worked out for you. Fix
+        anything it flags in red, then press <b>Publish to the game</b>.</p>
+        <div class="note tip"><span class="ico">⚡</span> Publishing is live immediately. The page rebuilds the game's lesson list itself — there's nothing to run in a terminal, and no developer needed. Just reload the game.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">5</div>
+      <div>
+        <h3>Made a mistake? Reset it.</h3>
+        <p><b>Reset all to standard</b>, top right, undoes any edits made to the 30 standard
+        conversations and restores their original text — useful if something was published by
+        accident. It asks for confirmation first, and never touches a conversation added beyond the
+        standard 30, since there's no "original" for those to go back to.</p>
+      </div>
+    </div>
+
+    <div class="badge-row">
+      <span class="badge">📚 30 standard conversations</span>
+      <span class="badge">🏫 9 locations</span>
+      <span class="badge">🟢 Easy · 🟠 Medium · 🔴 Difficult</span>
+    </div>
+
+    <div class="note">
+      <span class="ico">🌐</span>
+      <div><b>Works the same everywhere.</b> The admin page runs identically whether the game is
+      hosted through Laragon/Apache or the built-in <code>npm start</code> server — sign in and publish
+      exactly the same way on either.</div>
+    </div>
+  </main>
+
+  <footer>
+    Spoken English Adventure — lesson admin guide.
+  </footer>
+</div>
+
+<script>
+  /*
+   * This page carries the same instructions the login gate warns is only
+   * meant for whoever manages the game's content - so it opens the same way
+   * the editor does: with a real server-checked session, not just a link
+   * nobody happens to have shared. A player who finds this URL is sent back
+   * to the sign-in page instead of reading it.
+   */
+  const KEY = "sea-admin-token";
+  const token = sessionStorage.getItem(KEY);
+
+  (async () => {
+    if (!token) { location.replace("./"); return; }
+    try {
+      const res = await fetch("api/check.php", { headers: { "x-admin-token": token }, credentials: "same-origin" });
+      if (!res.ok) { location.replace("./"); return; }
+      document.getElementById("content").style.display = "block";
+    } catch {
+      location.replace("./");
+    }
+  })();
+</script>
+
+</body>
+</html>

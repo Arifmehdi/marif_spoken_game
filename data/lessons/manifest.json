@@ -1,77 +1,217 @@
 {
-  "version": 1,
-  "title": "Spoken English Adventure",
-  "description": "Daily conversation lessons. Add a new file here and the game picks it up - no code changes.",
-  "lessons": [
-    {
-      "day": 1,
-      "file": "day_001.json",
-      "topic": "At School",
-      "location": "school",
-      "difficulty": "beginner"
-    },
-    {
-      "day": 2,
-      "file": "day_002.json",
-      "topic": "Meeting a New Friend",
-      "location": "park",
-      "difficulty": "beginner"
-    },
-    {
-      "day": 3,
-      "file": "day_003.json",
-      "topic": "At a Shop",
-      "location": "shop",
-      "difficulty": "beginner"
-    },
-    {
-      "day": 4,
-      "file": "day_004.json",
-      "topic": "At a Restaurant",
-      "location": "restaurant",
-      "difficulty": "elementary"
-    },
-    {
-      "day": 5,
-      "file": "day_005.json",
-      "topic": "Asking for Directions",
-      "location": "city",
-      "difficulty": "elementary"
-    },
-    {
-      "day": 6,
-      "file": "day_006.json",
-      "topic": "Talking About Family",
-      "location": "home",
-      "difficulty": "beginner"
-    },
-    {
-      "day": 7,
-      "file": "day_007.json",
-      "topic": "Daily Routine",
-      "location": "home",
-      "difficulty": "elementary"
-    },
-    {
-      "day": 8,
-      "file": "day_008.json",
-      "topic": "At the Doctor",
-      "location": "hospital",
-      "difficulty": "intermediate"
-    },
-    {
-      "day": 9,
-      "file": "day_009.json",
-      "topic": "At the Bus Stop",
-      "location": "transport",
-      "difficulty": "elementary"
-    },
-    {
-      "day": 10,
-      "file": "day_010.json",
-      "topic": "At the Workplace",
-      "location": "workplace",
-      "difficulty": "intermediate"
-    }
-  ]
+    "version": 1,
+    "title": "Spoken English Adventure",
+    "description": "Daily conversation lessons. Ten places, three levels each. Add a file here and the game picks it up - no code changes.",
+    "lessons": [
+        {
+            "day": 1,
+            "file": "day_001.json",
+            "topic": "At School",
+            "location": "school",
+            "difficulty": "easy"
+        },
+        {
+            "day": 2,
+            "file": "day_002.json",
+            "topic": "Meeting a New Friend",
+            "location": "park",
+            "difficulty": "easy"
+        },
+        {
+            "day": 3,
+            "file": "day_003.json",
+            "topic": "At a Shop",
+            "location": "shop",
+            "difficulty": "easy"
+        },
+        {
+            "day": 4,
+            "file": "day_004.json",
+            "topic": "At a Restaurant",
+            "location": "restaurant",
+            "difficulty": "easy"
+        },
+        {
+            "day": 5,
+            "file": "day_005.json",
+            "topic": "Asking for Directions",
+            "location": "city",
+            "difficulty": "easy"
+        },
+        {
+            "day": 6,
+            "file": "day_006.json",
+            "topic": "Talking About Family",
+            "location": "home",
+            "difficulty": "easy"
+        },
+        {
+            "day": 7,
+            "file": "day_007.json",
+            "topic": "Daily Routine",
+            "location": "home",
+            "difficulty": "easy"
+        },
+        {
+            "day": 8,
+            "file": "day_008.json",
+            "topic": "At the Doctor",
+            "location": "hospital",
+            "difficulty": "easy"
+        },
+        {
+            "day": 9,
+            "file": "day_009.json",
+            "topic": "At the Bus Stop",
+            "location": "transport",
+            "difficulty": "easy"
+        },
+        {
+            "day": 10,
+            "file": "day_010.json",
+            "topic": "At the Workplace",
+            "location": "workplace",
+            "difficulty": "easy"
+        },
+        {
+            "day": 11,
+            "file": "day_011.json",
+            "topic": "Asking the Teacher for Help",
+            "location": "school",
+            "difficulty": "medium"
+        },
+        {
+            "day": 12,
+            "file": "day_012.json",
+            "topic": "Playing a Game Together",
+            "location": "park",
+            "difficulty": "medium"
+        },
+        {
+            "day": 13,
+            "file": "day_013.json",
+            "topic": "Buying Clothes",
+            "location": "shop",
+            "difficulty": "medium"
+        },
+        {
+            "day": 14,
+            "file": "day_014.json",
+            "topic": "Ordering for Two",
+            "location": "restaurant",
+            "difficulty": "medium"
+        },
+        {
+            "day": 15,
+            "file": "day_015.json",
+            "topic": "Finding the Post Office",
+            "location": "city",
+            "difficulty": "medium"
+        },
+        {
+            "day": 16,
+            "file": "day_016.json",
+            "topic": "Helping at Home",
+            "location": "home",
+            "difficulty": "medium"
+        },
+        {
+            "day": 17,
+            "file": "day_017.json",
+            "topic": "Talking About the Weekend",
+            "location": "home",
+            "difficulty": "medium"
+        },
+        {
+            "day": 18,
+            "file": "day_018.json",
+            "topic": "Getting Medicine",
+            "location": "hospital",
+            "difficulty": "medium"
+        },
+        {
+            "day": 19,
+            "file": "day_019.json",
+            "topic": "Buying a Ticket",
+            "location": "transport",
+            "difficulty": "medium"
+        },
+        {
+            "day": 20,
+            "file": "day_020.json",
+            "topic": "Meeting a New Colleague",
+            "location": "workplace",
+            "difficulty": "medium"
+        },
+        {
+            "day": 21,
+            "file": "day_021.json",
+            "topic": "Giving a Short Talk",
+            "location": "school",
+            "difficulty": "hard"
+        },
+        {
+            "day": 22,
+            "file": "day_022.json",
+            "topic": "Making Plans with a Friend",
+            "location": "park",
+            "difficulty": "hard"
+        },
+        {
+            "day": 23,
+            "file": "day_023.json",
+            "topic": "Returning Something",
+            "location": "shop",
+            "difficulty": "hard"
+        },
+        {
+            "day": 24,
+            "file": "day_024.json",
+            "topic": "A Problem with the Order",
+            "location": "restaurant",
+            "difficulty": "hard"
+        },
+        {
+            "day": 25,
+            "file": "day_025.json",
+            "topic": "Reporting a Lost Bag",
+            "location": "city",
+            "difficulty": "hard"
+        },
+        {
+            "day": 26,
+            "file": "day_026.json",
+            "topic": "Talking About Your Future",
+            "location": "home",
+            "difficulty": "hard"
+        },
+        {
+            "day": 27,
+            "file": "day_027.json",
+            "topic": "A Phone Call from a Relative",
+            "location": "home",
+            "difficulty": "hard"
+        },
+        {
+            "day": 28,
+            "file": "day_028.json",
+            "topic": "Explaining Your Symptoms",
+            "location": "hospital",
+            "difficulty": "hard"
+        },
+        {
+            "day": 29,
+            "file": "day_029.json",
+            "topic": "Asking About a Delay",
+            "location": "transport",
+            "difficulty": "hard"
+        },
+        {
+            "day": 30,
+            "file": "day_030.json",
+            "topic": "A Job Interview",
+            "location": "workplace",
+            "difficulty": "hard"
+        }
+    ]
 }

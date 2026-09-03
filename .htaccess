@@ -1,6 +1,20 @@
-# Development: never serve stale JS/JSON. Browsers cache ES modules very
-# aggressively, which makes edits look like they "did not apply".
-# Remove or relax this block when deploying to production.
+# Never serve the admin credentials or any dotfile. Apache happily hands out
+# anything under the web root, and admin.config.json sat there readable at
+# /admin.config.json until this was added.
+<FilesMatch "^(admin\.config\.json|\.[^.]+)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# Never serve stale JS/JSON. Browsers cache ES modules very aggressively,
+# which makes an edit look like it "did not apply" - and the admin page's own
+# lesson fetches already set cache:"no-cache" per request regardless, so a
+# server-side cache here would only affect the code files, not lesson content.
 <IfModule mod_headers.c>
   <FilesMatch "\.(js|mjs|json|css|html)$">
     Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
@@ -13,6 +27,20 @@
 </IfModule>
 
 FileETag None
+
+# Everything else served under spoken_game/ is a fixed art/audio asset - a 3D
+# model, texture, portrait or sound effect - that only ever changes by being
+# rebuilt and re-deployed under the same filename. Those are the multi-MB
+# downloads that actually cost a slow mobile connection time, so unlike the
+# code above they get a real cache: a day is long enough that a student
+# playing daily only pays for them once, short enough that a same-day art fix
+# still reaches everyone by tomorrow without anyone needing a hard refresh.
+<IfModule mod_headers.c>
+  <FilesMatch "\.(glb|gltf|png|jpe?g|webp|svg|mp3|wav|ogg|woff2?)$">
+    Header set Cache-Control "public, max-age=86400"
+    Header unset Pragma
+  </FilesMatch>
+</IfModule>
 
 # Correct MIME types for ES modules and 3D assets.
 <IfModule mod_mime.c>

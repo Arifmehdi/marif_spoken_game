@@ -1,0 +1,136 @@
+{
+  "lesson_id": "day_022",
+  "day": 22,
+  "topic": "Making Plans with a Friend",
+  "location": "park",
+  "difficulty": "hard",
+  "characters": [
+    {
+      "id": "friend",
+      "name": "Ananya",
+      "role": "friend"
+    }
+  ],
+  "intro": "Your friend wants to meet this Sunday. Agree on a plan together.",
+  "vocabulary": [
+    "are you free",
+    "how about",
+    "instead",
+    "let us meet",
+    "see you then"
+  ],
+  "conversation": [
+    {
+      "speaker": "friend",
+      "text": "Are you free on Sunday? I was thinking we could do something."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say whether you are free and suggest something.",
+      "expected": [
+        "Yes, I am free. How about going to the park?",
+        "Yes, I am free on Sunday. Shall we watch a film?",
+        "I am free. We could go cycling."
+      ],
+      "keywords": [
+        [
+          "free"
+        ]
+      ],
+      "expects": "yes_no",
+      "hint": "Try: \"Yes, I am free. How about going to the park?\"",
+      "points": 20
+    },
+    {
+      "speaker": "friend",
+      "text": "Hmm, I went to the park last week. Could we do something else?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Politely suggest a different idea.",
+      "expected": [
+        "How about the library instead?",
+        "We could go swimming instead.",
+        "Then let us visit the market instead."
+      ],
+      "keywords": [
+        [
+          "instead",
+          "could",
+          "how"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"How about the library instead?\"",
+      "points": 20,
+      "slot": "idea"
+    },
+    {
+      "speaker": "friend",
+      "text": "That sounds much better! What time shall we meet?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Suggest a time to meet.",
+      "expected": [
+        "Let us meet at four o'clock.",
+        "How about ten in the morning?",
+        "Shall we meet at three?"
+      ],
+      "keywords": [
+        [
+          "meet"
+        ]
+      ],
+      "expects": "time",
+      "hint": "Try: \"Let us meet at four o'clock.\"",
+      "points": 20,
+      "slot": "time"
+    },
+    {
+      "speaker": "friend",
+      "text": "Four is a little late for me. Could we make it earlier?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Agree politely and suggest an earlier time.",
+      "expected": [
+        "Of course, let us meet at two.",
+        "That is fine, how about two o'clock?",
+        "No problem, we can meet earlier."
+      ],
+      "keywords": [
+        [
+          "earlier",
+          "two",
+          "fine",
+          "course"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"Of course, let us meet at two.\"",
+      "points": 20
+    },
+    {
+      "speaker": "friend",
+      "text": "Perfect. I will wait for you near the gate."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Confirm the plan and say goodbye.",
+      "expected": [
+        "See you on Sunday then.",
+        "Great, see you then.",
+        "All right, see you at two."
+      ],
+      "keywords": [
+        [
+          "see"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"See you on Sunday then.\"",
+      "points": 20
+    }
+  ]
+}

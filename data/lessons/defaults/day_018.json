@@ -1,0 +1,133 @@
+{
+  "lesson_id": "day_018",
+  "day": 18,
+  "topic": "Getting Medicine",
+  "location": "hospital",
+  "difficulty": "medium",
+  "characters": [
+    {
+      "id": "doctor",
+      "name": "Dr. Iyer",
+      "role": "doctor"
+    }
+  ],
+  "intro": "The doctor has given you medicine. Ask how to take it.",
+  "vocabulary": [
+    "medicine",
+    "how many times",
+    "after food",
+    "days",
+    "get well"
+  ],
+  "conversation": [
+    {
+      "speaker": "doctor",
+      "text": "Here is your medicine. Take it carefully."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Ask how many times a day you should take it.",
+      "expected": [
+        "How many times a day should I take it?",
+        "How many times should I take this?",
+        "How often should I take it?"
+      ],
+      "keywords": [
+        [
+          "many",
+          "times",
+          "often"
+        ]
+      ],
+      "expects": "question",
+      "hint": "Try: \"How many times a day should I take it?\"",
+      "points": 20
+    },
+    {
+      "speaker": "doctor",
+      "text": "Twice a day, morning and night."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Ask whether to take it before or after food.",
+      "expected": [
+        "Before or after food?",
+        "Should I take it after food?",
+        "Do I take it before food?"
+      ],
+      "keywords": [
+        [
+          "food"
+        ]
+      ],
+      "expects": "question",
+      "hint": "Try: \"Should I take it after food?\"",
+      "points": 20
+    },
+    {
+      "speaker": "doctor",
+      "text": "Always after food. Never on an empty stomach."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Ask how many days you must take it.",
+      "expected": [
+        "For how many days?",
+        "How many days should I take it?",
+        "How long do I take it?"
+      ],
+      "keywords": [
+        [
+          "days",
+          "long"
+        ]
+      ],
+      "expects": "question",
+      "hint": "Try: \"For how many days?\"",
+      "points": 20
+    },
+    {
+      "speaker": "doctor",
+      "text": "For five days. Come back if you still feel unwell."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say that you understand the instructions.",
+      "expected": [
+        "I understand.",
+        "Yes, I understand, doctor.",
+        "All right, I understand."
+      ],
+      "keywords": [
+        [
+          "understand"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"Yes, I understand, doctor.\"",
+      "points": 20
+    },
+    {
+      "speaker": "doctor",
+      "text": "Good. Rest well and drink plenty of water."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Thank the doctor and say goodbye.",
+      "expected": [
+        "Thank you, doctor. Goodbye.",
+        "Thank you very much, goodbye.",
+        "Thanks doctor, bye."
+      ],
+      "keywords": [
+        [
+          "thank",
+          "thanks"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"Thank you, doctor. Goodbye.\"",
+      "points": 20
+    }
+  ]
+}

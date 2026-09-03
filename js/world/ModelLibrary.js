@@ -15,7 +15,6 @@
  */
 import * as THREE from "three";
 import { GLTFLoader } from "../vendor/GLTFLoader.js";
-import { FBXLoader } from "../vendor/FBXLoader.js";
 import { clone as cloneSkinned } from "../vendor/SkeletonUtils.js";
 
 const BASE = "spoken_game/character/";
@@ -24,10 +23,10 @@ const PROPS = "spoken_game/props/optimized/";
 /**
  * role/character id -> file + the height it should stand at, in metres.
  *
- * The student models are rigged FBX exports from Mixamo and carry a walk clip.
- * The teacher is still a static .glb, so she falls back to whole-body motion.
- * Format is chosen from the file extension, so replacing any of these with a
- * newer/animated export needs no code change.
+ * Every entry is a .glb. The playable students were built from Mixamo FBX
+ * animation exports by tools/build-character.html, which merges them into one
+ * rigged .glb with idle/walk/run/talk clips baked in - the game itself only
+ * ever loads glTF.
  */
 /*
  * `height` is the only knob for character size, in world units. For reference,
@@ -53,9 +52,6 @@ export const MODELS = {
   npcWoman2: { file: BASE + "optimized/npc_woman_2.glb", height: 1.30 },
 
   // Earlier exports, kept registered so nothing 404s if they are swapped back in.
-  // Mixamo names every clip "mixamo.com", hence the singleClip hint on these.
-  boyFbx:     { file: BASE + "main_character/dark/boy_2_t_walking.fbx", height: 1.30, singleClip: "walk" },
-  girlFbx:    { file: BASE + "main_character/dark/girl_2_t_walking.fbx", height: 1.28, singleClip: "walk" },
   boyStatic:  { file: BASE + "main_character/only_3d/boy_2_with_texture.glb", height: 1.30 },
   girlStatic: { file: BASE + "main_character/only_3d/girl_1_with_texture.glb", height: 1.28 },
 
@@ -135,7 +131,6 @@ export class ModelLibrary {
       ? Math.min(8, renderer.capabilities.getMaxAnisotropy())
       : 4;
     this.gltf = new GLTFLoader();
-    this.fbx = new FBXLoader();
     this.cache = new Map();     // key -> normalised THREE.Group
     this.pending = new Map();   // key -> Promise, so two requests share one download
     this.failed = new Set();
@@ -174,20 +169,17 @@ export class ModelLibrary {
   }
 
   /**
-   * FBX and glTF hand back different shapes: GLTFLoader gives { scene,
-   * animations }, FBXLoader gives an Object3D with `.animations` on it.
-   * Both are reduced to one normalised group with clips in userData.
+   * Every registered model is glTF - FBX support was dropped (see git history
+   * for ModelLibrary.js if a .fbx-sourced model is ever needed again; the
+   * conversion tools still use vendor/FBXLoader.js directly).
    */
   load(key, def) {
-    const isFbx = /\.fbx$/i.test(def.file);
-    const loader = isFbx ? this.fbx : this.gltf;
-
     return new Promise((resolve, reject) => {
-      loader.load(def.file,
+      this.gltf.load(def.file,
         (result) => {
           try {
-            const scene = isFbx ? result : result.scene;
-            const clips = (isFbx ? result.animations : result.animations) || [];
+            const scene = result.scene;
+            const clips = result.animations || [];
             const group = this.normalise(scene, def.height);
             // Animation clips are plain data and can be shared by every
             // instance; each instance gets its own mixer.

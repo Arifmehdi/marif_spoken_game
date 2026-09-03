@@ -16,6 +16,9 @@ const EMPTY = () => ({
   bestStreak: 0,
   xp: 0,
   coins: 0,
+  streakFreezes: 0,
+  hintCredits: 0,
+  dailyReward: { day: 0, lastClaimDate: null },
   lessons: {},   // lesson_id -> { bestScore, lastScore, attempts, stars, completedAt }
   history: [],   // one entry per completed conversation
   settings: { voice: true, sound: true, music: true, lang: "en-IN" }
@@ -60,6 +63,8 @@ export class ProgressStore {
   get xp() { return this.data.xp; }
   get coins() { return this.data.coins; }
   get streak() { return this.data.streak; }
+  get streakFreezes() { return this.data.streakFreezes || 0; }
+  get hintCredits() { return this.data.hintCredits || 0; }
 
   get level() {
     return Math.floor(this.data.xp / this.config.xpPerLevel) + 1;
@@ -92,20 +97,36 @@ export class ProgressStore {
 
   /* ------------------------------------------------------------- writers */
 
-  /** Daily streak: +1 for a new consecutive day, reset if a day was skipped. */
+  /**
+   * Daily streak: +1 for a new consecutive day, reset if a day was skipped -
+   * unless exactly one day was missed and a Streak Freeze is in stock, in
+   * which case one is spent automatically and the streak carries on.
+   *
+   * @returns {{streak:number, usedFreeze:boolean}}
+   */
   touchStreak() {
     const today = ProgressStore.todayKey();
     const last = this.data.lastPlayedDate;
-    if (last === today) return this.data.streak;
+    if (last === today) return { streak: this.data.streak, usedFreeze: false };
 
-    if (!last) this.data.streak = 1;
-    else {
+    let usedFreeze = false;
+    if (!last) {
+      this.data.streak = 1;
+    } else {
       const gap = ProgressStore.daysBetween(last, today);
-      this.data.streak = gap === 1 ? this.data.streak + 1 : 1;
+      if (gap === 1) {
+        this.data.streak += 1;
+      } else if (gap === 2 && (this.data.streakFreezes || 0) > 0) {
+        this.data.streakFreezes -= 1;
+        this.data.streak += 1;
+        usedFreeze = true;
+      } else {
+        this.data.streak = 1;
+      }
     }
     this.data.lastPlayedDate = today;
     this.data.bestStreak = Math.max(this.data.bestStreak, this.data.streak);
-    return this.data.streak;
+    return { streak: this.data.streak, usedFreeze };
   }
 
   /**
@@ -113,7 +134,7 @@ export class ProgressStore {
    * @returns {object} what was awarded, for the results screen
    */
   recordLesson(summary) {
-    const streak = this.touchStreak();
+    const { streak, usedFreeze } = this.touchStreak();
     const r = this.config.rewards;
 
     let xp = summary.xp;
@@ -158,7 +179,10 @@ export class ProgressStore {
     if (this.data.history.length > 400) this.data.history = this.data.history.slice(-400);
 
     this.save();
-    return { xp, coins, stars: summary.stars, streak, bonuses, leveledUp: afterLevel > beforeLevel, level: afterLevel };
+    return {
+      xp, coins, stars: summary.stars, streak, bonuses,
+      leveledUp: afterLevel > beforeLevel, level: afterLevel, usedStreakFreeze: usedFreeze
+    };
   }
 
   /**
@@ -206,6 +230,106 @@ export class ProgressStore {
     return {
       xp, coins, stars: summary.stars, streak: this.data.streak, bonuses: [],
       leveledUp: afterLevel > beforeLevel, level: afterLevel, practice: true
+    };
+  }
+
+  /* --------------------------------------------------------------- store */
+
+  /**
+   * Spend coins on a `data/config/scoring.json` `store` item. `skipLesson`
+   * costs coins the same way but its effect (completing a lesson) needs the
+   * lesson content, which this store knows nothing about - Game.js applies
+   * that one itself after checking `canAfford`.
+   *
+   * @returns {{ok:boolean, error?:string}}
+   */
+  buy(itemId) {
+    const item = this.config.store && this.config.store[itemId];
+    if (!item) return { ok: false, error: "That item does not exist." };
+    if (!this.canAfford(itemId)) return { ok: false, error: "Not enough coins." };
+
+    this.data.coins -= item.price;
+    if (itemId === "streakFreeze") this.data.streakFreezes = (this.data.streakFreezes || 0) + 1;
+    else if (itemId === "hintPack") this.data.hintCredits = (this.data.hintCredits || 0) + (item.grants || 1);
+    // skipLesson: coins are spent here; Game.js completes the lesson itself.
+
+    this.save();
+    return { ok: true };
+  }
+
+  canAfford(itemId) {
+    const item = this.config.store && this.config.store[itemId];
+    return !!item && this.data.coins >= item.price;
+  }
+
+  /** One hint credit reveals a model answer. @returns {boolean} whether one was spent */
+  useHintCredit() {
+    if ((this.data.hintCredits || 0) <= 0) return false;
+    this.data.hintCredits -= 1;
+    this.save();
+    return true;
+  }
+
+  /* ---------------------------------------------------------- daily reward */
+
+  /**
+   * What today's login reward would be, without claiming it. Returns null if
+   * it has already been claimed today. A 7-day cycle: consecutive days climb
+   * the reward table, and missing a day resets to day 1 - the same rule the
+   * lesson streak uses, kept as a separate counter so opening the app on a
+   * day you do not finish a lesson still earns something.
+   */
+  previewDailyReward() {
+    const cycle = (this.config.dailyReward && this.config.dailyReward.coins) || [10, 15, 20, 25, 30, 40, 60];
+    const today = ProgressStore.todayKey();
+    const dr = this.data.dailyReward || { day: 0, lastClaimDate: null };
+    if (dr.lastClaimDate === today) return null;
+
+    let day;
+    if (!dr.lastClaimDate) {
+      day = 1;
+    } else {
+      const gap = ProgressStore.daysBetween(dr.lastClaimDate, today);
+      day = gap === 1 ? (dr.day % cycle.length) + 1 : 1;
+    }
+    const bonusFreeze = day === cycle.length;
+    return { day, coins: cycle[day - 1], bonusFreeze, cycle };
+  }
+
+  /** @returns {object|null} the reward claimed, or null if today's was already taken */
+  claimDailyReward() {
+    const preview = this.previewDailyReward();
+    if (!preview) return null;
+    this.data.coins += preview.coins;
+    if (preview.bonusFreeze) this.data.streakFreezes = (this.data.streakFreezes || 0) + 1;
+    this.data.dailyReward = { day: preview.day, lastClaimDate: ProgressStore.todayKey() };
+    this.save();
+    return preview;
+  }
+
+  /* -------------------------------------------------------------- badges */
+
+  /**
+   * Everything Badges.js needs to work out which badges are earned.
+   * Needs the manifest to know which level each lesson belongs to - that
+   * pairing lives outside a lesson's own save record.
+   */
+  badgeStats(manifest) {
+    const byLevel = { easy: 0, medium: 0, hard: 0 };
+    manifest.lessons.forEach((l) => {
+      const id = "day_" + String(l.day).padStart(3, "0");
+      if (this.data.lessons[id] && this.data.lessons[id].completedAt) {
+        byLevel[l.difficulty] = (byLevel[l.difficulty] || 0) + 1;
+      }
+    });
+    const perfectLessons = Object.values(this.data.lessons).filter((l) => l.bestScore >= 100).length;
+
+    return {
+      lessonsCompleted: this.completedLessonIds().length,
+      level: this.level,
+      bestStreak: this.data.bestStreak,
+      perfectLessons,
+      byLevel
     };
   }
 

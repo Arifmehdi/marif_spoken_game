@@ -1,0 +1,133 @@
+{
+  "lesson_id": "day_015",
+  "day": 15,
+  "topic": "Finding the Post Office",
+  "location": "city",
+  "difficulty": "medium",
+  "characters": [
+    {
+      "id": "stranger",
+      "name": "Officer Rao",
+      "role": "police"
+    }
+  ],
+  "intro": "You need to post a letter. Ask the officer where the post office is.",
+  "vocabulary": [
+    "excuse me",
+    "how far",
+    "turn left",
+    "straight",
+    "near"
+  ],
+  "conversation": [
+    {
+      "speaker": "stranger",
+      "text": "Yes? Do you need any help?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Politely ask where the post office is.",
+      "expected": [
+        "Excuse me, where is the post office?",
+        "Could you tell me where the post office is?",
+        "Where is the post office, please?"
+      ],
+      "keywords": [
+        [
+          "post",
+          "office"
+        ]
+      ],
+      "expects": "question",
+      "hint": "Try: \"Excuse me, where is the post office?\"",
+      "points": 20
+    },
+    {
+      "speaker": "stranger",
+      "text": "Go straight and take the second left. It is beside the bank."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Ask how far it is.",
+      "expected": [
+        "How far is it?",
+        "Is it far from here?",
+        "How far is the post office?"
+      ],
+      "keywords": [
+        [
+          "far"
+        ]
+      ],
+      "expects": "question",
+      "hint": "Try: \"How far is it?\"",
+      "points": 20
+    },
+    {
+      "speaker": "stranger",
+      "text": "About ten minutes on foot."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Ask if you can walk there or should take a bus.",
+      "expected": [
+        "Can I walk there?",
+        "Should I take a bus?",
+        "Is it better to walk or take a bus?"
+      ],
+      "keywords": [
+        [
+          "walk",
+          "bus"
+        ]
+      ],
+      "expects": "question",
+      "hint": "Try: \"Can I walk there?\"",
+      "points": 20
+    },
+    {
+      "speaker": "stranger",
+      "text": "You can walk. It is a straight road."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Repeat the directions to make sure you understood.",
+      "expected": [
+        "So I go straight and turn left.",
+        "Straight and then the second left, yes?",
+        "I go straight, then left."
+      ],
+      "keywords": [
+        [
+          "straight",
+          "left"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"So I go straight and turn left.\"",
+      "points": 20
+    },
+    {
+      "speaker": "stranger",
+      "text": "That is right. You will find it easily."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Thank the officer for the directions.",
+      "expected": [
+        "Thank you for your help.",
+        "Thank you very much.",
+        "Thanks a lot, sir."
+      ],
+      "keywords": [
+        [
+          "thank",
+          "thanks"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"Thank you for your help.\"",
+      "points": 20
+    }
+  ]
+}

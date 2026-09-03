@@ -219,6 +219,8 @@ html, body {
 }
 .hint-btn.is-active { background: var(--amber); color: #3b2600; }
 .hint-text { color: #fcd34d; font-size: 14px; font-weight: 700; text-align: center; }
+.hint-credit-btn { background: rgba(139,92,246,.24); color: #d8b4fe; }
+.hint-credit-btn:hover { background: rgba(139,92,246,.4); }
 
 /* ------------------------------------------------------------ feedback */
 
@@ -327,6 +329,26 @@ html, body {
 .bonus-row { display: flex; justify-content: space-between; font-weight: 700; font-size: 14px; color: #854d0e; padding: 3px 0; }
 .levelup { margin-top: 10px; text-align: center; background: linear-gradient(90deg,#fbbf24,#f59e0b); color: #422006; font-weight: 800; padding: 10px; border-radius: 14px; }
 
+/* daily reward calendar strip */
+.dr-strip { display: flex; gap: 7px; justify-content: center; flex-wrap: wrap; margin: 6px 0 4px; }
+.dr-day {
+  flex: 1 1 60px; max-width: 76px; text-align: center; border-radius: 14px; padding: 10px 4px;
+  background: #f1f5f9; border: 2px solid transparent;
+}
+.dr-day-num { font-size: 10px; font-weight: 800; color: #94a3b8; letter-spacing: .04em; text-transform: uppercase; }
+.dr-day-coin { margin: 5px 0 2px; opacity: .5; display: flex; justify-content: center; }
+.dr-day-img { width: 24px; height: 24px; object-fit: contain; }
+.dr-day-amt { font-size: 13px; font-weight: 800; color: #64748b; }
+.dr-day.dr-done { background: #f0fdf4; }
+.dr-day.dr-done .dr-day-coin { opacity: 1; }
+.dr-day.dr-done .dr-day-amt { color: #16a34a; }
+.dr-day.dr-today {
+  background: linear-gradient(160deg, #fffdf7, #fef3c7); border-color: #f59e0b;
+  box-shadow: 0 0 0 4px rgba(245,158,11,.2); transform: scale(1.08);
+}
+.dr-day.dr-today .dr-day-coin { opacity: 1; }
+.dr-day.dr-today .dr-day-amt { color: #92400e; }
+
 .result-table { width: 100%; border-collapse: collapse; }
 .result-table td { padding: 9px 4px; border-bottom: 1px solid #eef2f6; font-size: 14px; font-weight: 600; }
 .r-prompt { color: #475569; }
@@ -342,6 +364,72 @@ html, body {
 .stat-val { grid-column: 3; font-size: 13.5px; font-weight: 800; text-align: right; color: var(--ink); }
 
 /* progress history */
+/* ---- progress by level ---- */
+
+/*
+ * One card per level, each with a ring showing how much of it is finished.
+ *
+ * These sit inside .screen-card, which is CREAM with dark ink - not the dark
+ * shell the menus use. Styled for the dark panel by mistake the labels came out
+ * near-white on near-white and vanished, so every colour here is picked against
+ * a light surface, and the three accents are the darker ends of their hues for
+ * the same reason.
+ */
+.lvl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+
+.lvl-card {
+  display: flex; align-items: center; gap: 12px;
+  background: rgba(22,35,61,.035); border: 2px solid rgba(22,35,61,.10);
+  border-radius: 16px; padding: 11px 13px;
+}
+.lvl-card.is-empty { opacity: .6; }
+
+.lvl-ring { width: 48px; height: 48px; flex: none; transform: rotate(-90deg); }
+.lvl-track { fill: none; stroke: rgba(22,35,61,.13); stroke-width: 5; }
+.lvl-arc {
+  fill: none; stroke-width: 5; stroke-linecap: round;
+  transition: stroke-dashoffset .5s cubic-bezier(.3,1,.4,1);
+}
+
+.lvl-body { min-width: 0; }
+.lvl-name { font-size: 15px; font-weight: 800; color: var(--ink, #16233d); line-height: 1.15; }
+.lvl-count { font-size: 12px; font-weight: 700; color: #64748b; margin-top: 2px; }
+.lvl-avg { font-size: 12px; font-weight: 800; margin-top: 1px; }
+
+.lvl-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+
+/* easy - green, medium - amber, difficult - rose */
+.lvl-easy   { border-color: rgba(22,163,74,.34); }
+.lvl-easy   .lvl-arc { stroke: #16a34a; }
+.lvl-easy   .lvl-avg { color: #15803d; }
+.lvl-dot.lvl-easy   { background: #16a34a; }
+
+.lvl-medium { border-color: rgba(217,119,6,.34); }
+.lvl-medium .lvl-arc { stroke: #d97706; }
+.lvl-medium .lvl-avg { color: #b45309; }
+.lvl-dot.lvl-medium { background: #d97706; }
+
+.lvl-hard   { border-color: rgba(225,29,72,.32); }
+.lvl-hard   .lvl-arc { stroke: #e11d48; }
+.lvl-hard   .lvl-avg { color: #be123c; }
+.lvl-dot.lvl-hard   { background: #e11d48; }
+
+.lvl-card.is-empty .lvl-avg { color: #94a3b8; }
+
+/* the lesson list, grouped under the same three headings */
+.hist-group + .hist-group { margin-top: 18px; }
+.hist-head {
+  display: flex; align-items: center; font-size: 12px; font-weight: 800;
+  letter-spacing: .06em; text-transform: uppercase; color: #475569;
+  padding-bottom: 6px; margin-bottom: 8px; border-bottom: 1px solid rgba(22,35,61,.12);
+}
+.hist-head-count { margin-left: auto; color: #94a3b8; letter-spacing: .02em; }
+
+/* score bars take their group's colour, so the page reads as three bands */
+.hist-group:nth-of-type(1) .hist-fill { background: #16a34a; }
+.hist-group:nth-of-type(2) .hist-fill { background: #d97706; }
+.hist-group:nth-of-type(3) .hist-fill { background: #e11d48; }
+
 .hist { display: flex; flex-direction: column; gap: 7px; }
 .hist-row { display: grid; grid-template-columns: 54px 1fr 90px 46px; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 700; }
 .hist-row.is-locked { opacity: .42; }
@@ -351,6 +439,36 @@ html, body {
 .hist-fill { display: block; height: 100%; background: linear-gradient(90deg,#4ade80,#22c55e); border-radius: 999px; }
 .hist-score { text-align: right; color: var(--ink); }
 .trend { font-size: 18px; } .trend.up { color: #16a34a; } .trend.down { color: #dc2626; }
+
+/* --------------------------------------------------------------- badges */
+
+.badge-bar { height: 9px; background: #e2e8f0; border-radius: 999px; overflow: hidden; margin-top: 8px; }
+.badge-bar-fill { height: 100%; background: linear-gradient(90deg,#93c5fd,#3b82f6); border-radius: 999px; transition: width .5s cubic-bezier(.3,1,.4,1); }
+.badge-bar-text { font-size: 11px; font-weight: 800; color: #94a3b8; margin-top: 4px; }
+
+.badge-next {
+  background: linear-gradient(160deg, #fffdf7, #eef2ff); border: 2px solid rgba(59,130,246,.25);
+  border-radius: 18px; padding: 16px 18px; margin: 4px 0 8px;
+}
+.badge-next-kicker { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--brand); margin-bottom: 8px; }
+.badge-next-row { display: flex; align-items: center; gap: 12px; }
+.badge-next-icon { width: 44px; height: 44px; object-fit: contain; flex: none; }
+.badge-next-name { font-size: 16px; font-weight: 800; color: var(--ink); }
+.badge-next-desc { font-size: 12.5px; font-weight: 600; color: #64748b; margin-top: 1px; }
+.badge-next-done { text-align: center; font-weight: 800; color: #15803d; background: #f0fdf4; border-color: rgba(22,163,74,.3); }
+
+.badge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.badge-card {
+  background: rgba(22,35,61,.035); border: 2px solid rgba(22,35,61,.10); border-radius: 16px;
+  padding: 14px 12px; text-align: center; opacity: .68;
+}
+.badge-card.is-earned { opacity: 1; border-color: rgba(245,158,11,.4); background: linear-gradient(160deg, #fffdf7, #fef9e7); }
+.badge-icon { width: 46px; height: 46px; margin: 0 auto 8px; }
+.badge-icon img { width: 100%; height: 100%; object-fit: contain; }
+.badge-card:not(.is-earned) .badge-icon img { filter: grayscale(1); }
+.badge-name { font-size: 13.5px; font-weight: 800; color: var(--ink); }
+.badge-desc { font-size: 11px; font-weight: 600; color: #94a3b8; margin: 3px 0 2px; line-height: 1.35; }
+.badge-earned-tag { font-size: 11px; font-weight: 800; color: #b45309; margin-top: 8px; }
 
 /* map */
 .map-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 6px; }

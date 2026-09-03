@@ -1,0 +1,134 @@
+{
+  "lesson_id": "day_013",
+  "day": 13,
+  "topic": "Buying Clothes",
+  "location": "shop",
+  "difficulty": "medium",
+  "characters": [
+    {
+      "id": "shopkeeper",
+      "name": "Mr. Verma",
+      "role": "shopkeeper"
+    }
+  ],
+  "intro": "You need a new shirt for school. Talk to the shopkeeper.",
+  "vocabulary": [
+    "size",
+    "colour",
+    "try it on",
+    "too big",
+    "too small"
+  ],
+  "conversation": [
+    {
+      "speaker": "shopkeeper",
+      "text": "Good morning. How can I help you today?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say that you are looking for a shirt.",
+      "expected": [
+        "I am looking for a shirt.",
+        "I want to buy a shirt.",
+        "I need a school shirt."
+      ],
+      "keywords": [
+        [
+          "shirt"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I am looking for a shirt.\"",
+      "points": 20
+    },
+    {
+      "speaker": "shopkeeper",
+      "text": "We have many shirts. What size do you need?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Tell the shopkeeper your size.",
+      "expected": [
+        "I need a small size.",
+        "Medium size, please.",
+        "I think I need a large size."
+      ],
+      "keywords": [
+        [
+          "size"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I need a medium size.\"",
+      "points": 20,
+      "slot": "size"
+    },
+    {
+      "speaker": "shopkeeper",
+      "text": "Here is a white one and a blue one. Which colour do you like?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say which colour you prefer.",
+      "expected": [
+        "I like the blue one.",
+        "I prefer the white one.",
+        "The blue colour, please."
+      ],
+      "keywords": [
+        [
+          "blue",
+          "white",
+          "colour"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I like the blue one.\"",
+      "points": 20,
+      "slot": "colour"
+    },
+    {
+      "speaker": "shopkeeper",
+      "text": "Good choice. Would you like to try it on?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say yes and ask where you can try it.",
+      "expected": [
+        "Yes, where can I try it?",
+        "Yes please, where is the changing room?",
+        "Yes, I would like to try it on."
+      ],
+      "keywords": [
+        [
+          "try"
+        ]
+      ],
+      "expects": "yes_no",
+      "hint": "Try: \"Yes, where can I try it?\"",
+      "points": 20
+    },
+    {
+      "speaker": "shopkeeper",
+      "text": "It fits you well. That will be four hundred rupees."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say you will take it and thank him.",
+      "expected": [
+        "I will take it, thank you.",
+        "Yes, I will buy it. Thank you.",
+        "I will take this one, thank you."
+      ],
+      "keywords": [
+        [
+          "take",
+          "buy"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I will take it, thank you.\"",
+      "points": 20
+    }
+  ]
+}

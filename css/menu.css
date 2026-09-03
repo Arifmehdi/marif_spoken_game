@@ -88,7 +88,8 @@
   background: #fff; display: grid; place-items: center; flex: none;
 }
 .hero-portrait img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
-.hero-name { font-size: 16px; font-weight: 800; color: var(--ink); }
+.hero-name { font-size: 16px; font-weight: 800; color: var(--ink); display: flex; align-items: center; gap: 6px; }
+.hero-badge { width: 20px; height: 20px; object-fit: contain; flex: none; }
 .hero-level { font-size: 11px; font-weight: 800; color: #8b5cf6; letter-spacing: .06em; text-transform: uppercase; }
 .hero-xp { width: 132px; height: 8px; border-radius: 999px; background: #dbe2ea; overflow: hidden; margin: 5px 0 3px; }
 .hero-xp span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg,#4ade80,#22c55e); }
@@ -200,8 +201,48 @@
 }
 .loc-name { font-size: 17px; font-weight: 800; color: var(--ink); margin-top: 9px; }
 .loc-blurb { font-size: 11.5px; font-weight: 700; color: #94a3b8; padding: 0 8px; }
+/* Easy / Medium / Difficult, above the places in Free Play. */
+.level-row { display:flex; gap:10px; justify-content:center; margin:0 0 22px; flex-wrap:wrap; }
+.level-btn {
+  border:3px solid rgba(255,255,255,.18); background:rgba(255,255,255,.06); color:#cbd5e1;
+  font-family:var(--font); font-weight:800; font-size:15px; letter-spacing:.02em;
+  padding:11px 30px; border-radius:999px; cursor:pointer;
+  transition:background .15s ease, color .15s ease, border-color .15s ease, transform .12s ease;
+}
+.level-btn:hover { color:#fff; border-color:rgba(255,255,255,.34); }
+.level-btn.is-on {
+  background:linear-gradient(160deg,#ffd24a,#f59e0b); border-color:#ffd24a; color:#422006;
+  transform:translateY(-2px); box-shadow:0 4px 0 #b4780b;
+}
 /* Which day(s) of the course happen here - a place can hold more than one. */
 .loc-days { font-size: 10.5px; font-weight: 800; color: #64748b; letter-spacing: .04em; margin-top: 4px; }
+
+/* ------------------------------------------------------------------ store */
+
+.store-balance { justify-content: center; margin-bottom: 22px; }
+.store-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px; width: min(760px, 100%);
+}
+.store-card {
+  background: linear-gradient(180deg, #fffdf7, #e8edf3);
+  border-radius: 20px; padding: 18px 16px; text-align: center;
+  display: flex; flex-direction: column; align-items: center;
+}
+.store-icon { font-size: 40px; line-height: 1; margin-bottom: 6px; }
+.store-name { font-size: 16px; font-weight: 800; color: var(--ink); }
+.store-desc { font-size: 12px; font-weight: 600; color: #64748b; margin: 5px 0 4px; line-height: 1.4; }
+.store-owned { font-size: 11px; font-weight: 800; color: #16a34a; letter-spacing: .03em; margin-bottom: 10px; }
+.store-buy {
+  margin-top: auto; border: 0; cursor: pointer; font-family: var(--font);
+  display: flex; align-items: center; gap: 6px;
+  background: linear-gradient(160deg, #ffd24a, #f59e0b); color: #422006;
+  font-weight: 800; font-size: 15px; padding: 9px 20px; border-radius: 999px;
+  box-shadow: 0 4px 0 #b4780b; transition: transform .1s ease, filter .15s ease;
+}
+.store-buy:hover:not(:disabled) { filter: brightness(1.06); }
+.store-buy:active:not(:disabled) { transform: translateY(2px); }
+.store-buy:disabled, .store-buy.is-off { opacity: .45; cursor: not-allowed; box-shadow: none; }
 
 @media (max-width: 640px) {
   .menu-left { width: 100%; background: linear-gradient(100deg, rgba(7,13,28,.95) 40%, rgba(7,13,28,.62) 100%); }

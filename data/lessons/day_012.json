@@ -1,0 +1,132 @@
+{
+  "lesson_id": "day_012",
+  "day": 12,
+  "topic": "Playing a Game Together",
+  "location": "park",
+  "difficulty": "medium",
+  "characters": [
+    {
+      "id": "friend",
+      "name": "Ananya",
+      "role": "friend"
+    }
+  ],
+  "intro": "Your friend is playing in the park. Ask to join the game.",
+  "vocabulary": [
+    "can I join",
+    "my turn",
+    "let us play",
+    "team",
+    "well played"
+  ],
+  "conversation": [
+    {
+      "speaker": "friend",
+      "text": "Hi! We are starting a game of cricket. Do you want to play?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say yes and ask if you can join the game.",
+      "expected": [
+        "Yes, can I join the game?",
+        "Yes please, can I join?",
+        "Yes, I want to play with you."
+      ],
+      "keywords": [
+        [
+          "join",
+          "play"
+        ]
+      ],
+      "expects": "yes_no",
+      "hint": "Try: \"Yes, can I join the game?\"",
+      "points": 20
+    },
+    {
+      "speaker": "friend",
+      "text": "Great! Which team do you want to be in?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say which team you want to join.",
+      "expected": [
+        "I want to be in your team.",
+        "I would like to join your team.",
+        "Your team, please."
+      ],
+      "keywords": [
+        [
+          "team"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I want to be in your team.\"",
+      "points": 20,
+      "slot": "team"
+    },
+    {
+      "speaker": "friend",
+      "text": "You can bat first. Do you know the rules?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say that you know the rules, or ask her to explain them.",
+      "expected": [
+        "Yes, I know the rules.",
+        "No, could you explain the rules?",
+        "I know the rules a little."
+      ],
+      "keywords": [
+        [
+          "rules"
+        ]
+      ],
+      "expects": "yes_no",
+      "hint": "Try: \"Yes, I know the rules.\"",
+      "points": 20
+    },
+    {
+      "speaker": "friend",
+      "text": "Good. Be careful of the flowers near the bench!"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Promise that you will be careful.",
+      "expected": [
+        "I will be careful.",
+        "Yes, I will be careful.",
+        "Do not worry, I will be careful."
+      ],
+      "keywords": [
+        [
+          "careful"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I will be careful.\"",
+      "points": 20
+    },
+    {
+      "speaker": "friend",
+      "text": "That was a good shot! You play well."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Thank your friend and say you enjoyed the game.",
+      "expected": [
+        "Thank you, I enjoyed the game.",
+        "Thanks, that was fun.",
+        "Thank you, it was a good game."
+      ],
+      "keywords": [
+        [
+          "thank",
+          "thanks"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"Thank you, I enjoyed the game.\"",
+      "points": 20
+    }
+  ]
+}

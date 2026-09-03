@@ -1,0 +1,132 @@
+{
+  "lesson_id": "day_021",
+  "day": 21,
+  "topic": "Giving a Short Talk",
+  "location": "school",
+  "difficulty": "hard",
+  "characters": [
+    {
+      "id": "teacher",
+      "name": "Mrs. Sharma",
+      "role": "teacher"
+    }
+  ],
+  "intro": "Your teacher has asked you to speak in front of the class. Talk about something you like.",
+  "vocabulary": [
+    "I would like to talk about",
+    "first of all",
+    "the reason is",
+    "for example",
+    "in conclusion"
+  ],
+  "conversation": [
+    {
+      "speaker": "teacher",
+      "text": "It is your turn to speak. What will you talk about today?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say what your talk is about.",
+      "expected": [
+        "I would like to talk about my favourite book.",
+        "Today I will talk about my village.",
+        "I want to talk about my family."
+      ],
+      "keywords": [
+        [
+          "talk"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I would like to talk about my favourite book.\"",
+      "points": 20,
+      "slot": "subject"
+    },
+    {
+      "speaker": "teacher",
+      "text": "A good choice. Tell the class why you chose it."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Explain your reason for choosing it.",
+      "expected": [
+        "I chose it because it is very interesting.",
+        "The reason is that I love reading it.",
+        "I chose this because it makes me happy."
+      ],
+      "keywords": [
+        [
+          "because",
+          "reason"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I chose it because it is very interesting.\"",
+      "points": 20
+    },
+    {
+      "speaker": "teacher",
+      "text": "Can you give the class an example?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Give an example to support what you said.",
+      "expected": [
+        "For example, it teaches us to be brave.",
+        "For example, I read it every evening.",
+        "For example, my brother liked it too."
+      ],
+      "keywords": [
+        [
+          "example"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"For example, it teaches us to be brave.\"",
+      "points": 20
+    },
+    {
+      "speaker": "teacher",
+      "text": "Very good. How did you feel when you first read it?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Describe how you felt, using the past tense.",
+      "expected": [
+        "I felt very happy when I read it.",
+        "I was excited when I first read it.",
+        "I felt surprised at the ending."
+      ],
+      "keywords": [
+        [
+          "felt",
+          "was"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I felt very happy when I read it.\"",
+      "points": 20
+    },
+    {
+      "speaker": "teacher",
+      "text": "That was a lovely talk. Well done."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Finish your talk and thank the class.",
+      "expected": [
+        "In conclusion, I recommend it to everyone. Thank you.",
+        "That is all, thank you for listening.",
+        "Thank you all for listening to me."
+      ],
+      "keywords": [
+        [
+          "thank"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"That is all, thank you for listening.\"",
+      "points": 20
+    }
+  ]
+}

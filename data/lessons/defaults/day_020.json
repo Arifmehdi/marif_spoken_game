@@ -1,0 +1,136 @@
+{
+  "lesson_id": "day_020",
+  "day": 20,
+  "topic": "Meeting a New Colleague",
+  "location": "workplace",
+  "difficulty": "medium",
+  "characters": [
+    {
+      "id": "manager",
+      "name": "Ms. Nair",
+      "role": "teacher"
+    }
+  ],
+  "intro": "It is your first day at work. Introduce yourself to the manager.",
+  "vocabulary": [
+    "nice to meet you",
+    "my first day",
+    "I am from",
+    "I will do my best",
+    "desk"
+  ],
+  "conversation": [
+    {
+      "speaker": "manager",
+      "text": "Welcome! You must be our new team member."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Introduce yourself and say it is your first day.",
+      "expected": [
+        "Yes, I am Arjun. It is my first day.",
+        "Hello, my name is Arjun. Today is my first day.",
+        "Yes, this is my first day."
+      ],
+      "keywords": [
+        [
+          "first",
+          "day"
+        ]
+      ],
+      "expects": "name",
+      "hint": "Try: \"Yes, I am Arjun. It is my first day.\"",
+      "points": 20,
+      "slot": "name"
+    },
+    {
+      "speaker": "manager",
+      "text": "Nice to meet you. Where are you from?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say where you are from.",
+      "expected": [
+        "I am from Delhi.",
+        "I come from Delhi.",
+        "I am from a small town near Delhi."
+      ],
+      "keywords": [
+        [
+          "from"
+        ]
+      ],
+      "expects": "place",
+      "hint": "Try: \"I am from Delhi.\"",
+      "points": 20,
+      "slot": "place"
+    },
+    {
+      "speaker": "manager",
+      "text": "Wonderful. Have you worked in an office before?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Answer whether you have worked before.",
+      "expected": [
+        "No, this is my first job.",
+        "Yes, I worked in an office before.",
+        "No, I have not worked before."
+      ],
+      "keywords": [
+        [
+          "job",
+          "worked",
+          "work"
+        ]
+      ],
+      "expects": "yes_no",
+      "hint": "Try: \"No, this is my first job.\"",
+      "points": 20
+    },
+    {
+      "speaker": "manager",
+      "text": "Do not worry, we will help you learn. Your desk is by the window."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Ask what your first task is.",
+      "expected": [
+        "What should I do first?",
+        "What is my first task?",
+        "What would you like me to do?"
+      ],
+      "keywords": [
+        [
+          "first",
+          "task",
+          "do"
+        ]
+      ],
+      "expects": "question",
+      "hint": "Try: \"What should I do first?\"",
+      "points": 20
+    },
+    {
+      "speaker": "manager",
+      "text": "Read these papers this morning, then we will talk again."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say that you will do your best.",
+      "expected": [
+        "I will do my best.",
+        "Thank you, I will do my best.",
+        "I will try my best."
+      ],
+      "keywords": [
+        [
+          "best"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I will do my best.\"",
+      "points": 20
+    }
+  ]
+}

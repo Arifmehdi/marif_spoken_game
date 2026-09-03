@@ -1,0 +1,137 @@
+{
+  "lesson_id": "day_026",
+  "day": 26,
+  "topic": "Talking About Your Future",
+  "location": "home",
+  "difficulty": "hard",
+  "characters": [
+    {
+      "id": "mother",
+      "name": "Mummy",
+      "role": "mother"
+    }
+  ],
+  "intro": "Your mother asks what you want to be when you grow up. Explain your dream.",
+  "vocabulary": [
+    "when I grow up",
+    "I want to become",
+    "so that",
+    "I am good at",
+    "I hope"
+  ],
+  "conversation": [
+    {
+      "speaker": "mother",
+      "text": "You are growing up so fast. What do you want to be one day?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say what you want to become.",
+      "expected": [
+        "I want to become a doctor.",
+        "When I grow up I want to be a teacher.",
+        "I would like to become an engineer."
+      ],
+      "keywords": [
+        [
+          "want",
+          "become",
+          "be"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I want to become a doctor.\"",
+      "points": 20,
+      "slot": "job"
+    },
+    {
+      "speaker": "mother",
+      "text": "That is a wonderful dream. Why that one?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Give your reason.",
+      "expected": [
+        "Because I want to help sick people.",
+        "Because I like teaching children.",
+        "Because I am good at science."
+      ],
+      "keywords": [
+        [
+          "because"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"Because I want to help sick people.\"",
+      "points": 20
+    },
+    {
+      "speaker": "mother",
+      "text": "And what must you do to reach that dream?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say what you will have to do.",
+      "expected": [
+        "I will have to study hard.",
+        "I must study science every day.",
+        "I will work hard at school."
+      ],
+      "keywords": [
+        [
+          "study",
+          "work",
+          "hard"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I will have to study hard.\"",
+      "points": 20
+    },
+    {
+      "speaker": "mother",
+      "text": "That is true. Which subject will help you most?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Name the subject and say why it helps.",
+      "expected": [
+        "Science, because doctors need it.",
+        "Maths will help me the most.",
+        "English, because I must talk to people."
+      ],
+      "keywords": [
+        [
+          "science",
+          "maths",
+          "english"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"Science, because doctors need it.\"",
+      "points": 20,
+      "slot": "subject"
+    },
+    {
+      "speaker": "mother",
+      "text": "I am proud of you. I know you will do well."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Thank your mother and say you will try.",
+      "expected": [
+        "Thank you, Mummy. I will try my best.",
+        "Thank you. I hope I can do it.",
+        "Thank you for believing in me."
+      ],
+      "keywords": [
+        [
+          "thank"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"Thank you, Mummy. I will try my best.\"",
+      "points": 20
+    }
+  ]
+}

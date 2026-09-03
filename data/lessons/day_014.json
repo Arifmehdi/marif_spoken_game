@@ -1,0 +1,135 @@
+{
+  "lesson_id": "day_014",
+  "day": 14,
+  "topic": "Ordering for Two",
+  "location": "restaurant",
+  "difficulty": "medium",
+  "characters": [
+    {
+      "id": "waiter",
+      "name": "Sanjay",
+      "role": "waiter"
+    }
+  ],
+  "intro": "You are at a restaurant with your mother. Order food for both of you.",
+  "vocabulary": [
+    "menu",
+    "for two",
+    "spicy",
+    "water",
+    "the bill"
+  ],
+  "conversation": [
+    {
+      "speaker": "waiter",
+      "text": "Good evening. A table for how many people?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say that you need a table for two.",
+      "expected": [
+        "A table for two, please.",
+        "We need a table for two.",
+        "Two people, please."
+      ],
+      "keywords": [
+        [
+          "two"
+        ]
+      ],
+      "expects": "number",
+      "hint": "Try: \"A table for two, please.\"",
+      "points": 20
+    },
+    {
+      "speaker": "waiter",
+      "text": "This way, please. Here is the menu. What would you like?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Order some food from the menu.",
+      "expected": [
+        "I would like rice and dal.",
+        "We would like two plates of rice.",
+        "I want rice, please."
+      ],
+      "keywords": [
+        [
+          "like",
+          "want",
+          "rice"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I would like rice and dal.\"",
+      "points": 20,
+      "slot": "food"
+    },
+    {
+      "speaker": "waiter",
+      "text": "Certainly. Would you like it spicy?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say whether you want it spicy or not.",
+      "expected": [
+        "Not too spicy, please.",
+        "Yes, a little spicy.",
+        "No, not spicy please."
+      ],
+      "keywords": [
+        [
+          "spicy"
+        ]
+      ],
+      "expects": "yes_no",
+      "hint": "Try: \"Not too spicy, please.\"",
+      "points": 20
+    },
+    {
+      "speaker": "waiter",
+      "text": "And anything to drink?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Ask for something to drink.",
+      "expected": [
+        "Two glasses of water, please.",
+        "Water, please.",
+        "Could we have some water?"
+      ],
+      "keywords": [
+        [
+          "water",
+          "drink",
+          "juice"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"Two glasses of water, please.\"",
+      "points": 20,
+      "slot": "drink"
+    },
+    {
+      "speaker": "waiter",
+      "text": "I will bring it right away."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Ask for the bill politely.",
+      "expected": [
+        "Could we have the bill, please?",
+        "The bill, please.",
+        "Can I have the bill please?"
+      ],
+      "keywords": [
+        [
+          "bill"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"Could we have the bill, please?\"",
+      "points": 20
+    }
+  ]
+}

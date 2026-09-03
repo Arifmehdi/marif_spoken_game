@@ -1,0 +1,136 @@
+{
+  "lesson_id": "day_028",
+  "day": 28,
+  "topic": "Explaining Your Symptoms",
+  "location": "hospital",
+  "difficulty": "hard",
+  "characters": [
+    {
+      "id": "doctor",
+      "name": "Dr. Iyer",
+      "role": "doctor"
+    }
+  ],
+  "intro": "You are not feeling well. Describe your problem to the doctor clearly.",
+  "vocabulary": [
+    "I have a",
+    "since",
+    "it hurts when",
+    "I feel",
+    "get better"
+  ],
+  "conversation": [
+    {
+      "speaker": "doctor",
+      "text": "Good morning. Please sit down. What is troubling you?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Describe what is wrong with you.",
+      "expected": [
+        "I have a bad headache.",
+        "I have a sore throat.",
+        "I have a pain in my stomach."
+      ],
+      "keywords": [
+        [
+          "have"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I have a bad headache.\"",
+      "points": 20,
+      "slot": "symptom"
+    },
+    {
+      "speaker": "doctor",
+      "text": "I see. Since when have you had this?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say how long you have had it.",
+      "expected": [
+        "Since yesterday morning.",
+        "I have had it for two days.",
+        "Since last night."
+      ],
+      "keywords": [
+        [
+          "since",
+          "days",
+          "yesterday",
+          "night"
+        ]
+      ],
+      "expects": "time",
+      "hint": "Try: \"Since yesterday morning.\"",
+      "points": 20
+    },
+    {
+      "speaker": "doctor",
+      "text": "Does anything make it worse?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say when it gets worse.",
+      "expected": [
+        "It hurts when I walk.",
+        "It is worse in the morning.",
+        "It hurts when I eat."
+      ],
+      "keywords": [
+        [
+          "hurts",
+          "worse"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"It hurts when I walk.\"",
+      "points": 20
+    },
+    {
+      "speaker": "doctor",
+      "text": "Have you taken any medicine for it?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say whether you have taken anything.",
+      "expected": [
+        "No, I have not taken anything.",
+        "Yes, I took a tablet last night.",
+        "No, I did not take any medicine."
+      ],
+      "keywords": [
+        [
+          "taken",
+          "took",
+          "medicine"
+        ]
+      ],
+      "expects": "yes_no",
+      "hint": "Try: \"No, I have not taken anything.\"",
+      "points": 20
+    },
+    {
+      "speaker": "doctor",
+      "text": "Do not worry. Rest for two days and you will feel better."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Thank the doctor and ask when to come back.",
+      "expected": [
+        "Thank you. When should I come back?",
+        "Thank you doctor. Should I come again?",
+        "Thank you very much, doctor."
+      ],
+      "keywords": [
+        [
+          "thank"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"Thank you. When should I come back?\"",
+      "points": 20
+    }
+  ]
+}

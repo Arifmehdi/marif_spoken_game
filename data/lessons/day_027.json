@@ -1,0 +1,131 @@
+{
+  "lesson_id": "day_027",
+  "day": 27,
+  "topic": "A Phone Call from a Relative",
+  "location": "home",
+  "difficulty": "hard",
+  "characters": [
+    {
+      "id": "mother",
+      "name": "Mummy",
+      "role": "mother"
+    }
+  ],
+  "intro": "Your aunt has called. Speak with her politely on the phone.",
+  "vocabulary": [
+    "hello",
+    "how are you",
+    "speaking",
+    "may I ask",
+    "give my love"
+  ],
+  "conversation": [
+    {
+      "speaker": "mother",
+      "text": "The phone is ringing. It is your aunt. Please answer it."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Answer the phone politely.",
+      "expected": [
+        "Hello, this is Arjun speaking.",
+        "Hello, good evening aunty.",
+        "Hello, how are you aunty?"
+      ],
+      "keywords": [
+        [
+          "hello"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"Hello, this is Arjun speaking.\"",
+      "points": 20
+    },
+    {
+      "speaker": "mother",
+      "text": "She asks how your studies are going."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Tell her how your studies are going.",
+      "expected": [
+        "My studies are going well.",
+        "They are going well, thank you.",
+        "I am doing well in my studies."
+      ],
+      "keywords": [
+        [
+          "studies",
+          "well"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"My studies are going well, thank you.\"",
+      "points": 20
+    },
+    {
+      "speaker": "mother",
+      "text": "Now she is asking whether you will visit in the holidays."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Answer about the holidays, using the future.",
+      "expected": [
+        "Yes, I will visit in the holidays.",
+        "I will come next month.",
+        "Yes, we will visit you soon."
+      ],
+      "keywords": [
+        [
+          "will"
+        ]
+      ],
+      "expects": "yes_no",
+      "hint": "Try: \"Yes, I will visit in the holidays.\"",
+      "points": 20
+    },
+    {
+      "speaker": "mother",
+      "text": "Ask her something too. It is polite."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Ask your aunt a polite question.",
+      "expected": [
+        "How is everyone at home?",
+        "How are you keeping, aunty?",
+        "May I ask how uncle is?"
+      ],
+      "keywords": [
+        [
+          "how"
+        ]
+      ],
+      "expects": "question",
+      "hint": "Try: \"How is everyone at home?\"",
+      "points": 20
+    },
+    {
+      "speaker": "mother",
+      "text": "She says she must go now. Say goodbye nicely."
+    },
+    {
+      "speaker": "student",
+      "prompt": "End the call politely.",
+      "expected": [
+        "Goodbye aunty, take care.",
+        "It was nice talking to you. Goodbye.",
+        "Give my love to everyone. Goodbye."
+      ],
+      "keywords": [
+        [
+          "goodbye",
+          "bye"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"Goodbye aunty, take care.\"",
+      "points": 20
+    }
+  ]
+}

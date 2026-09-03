@@ -32,6 +32,8 @@ export class UI {
       send: $("#btn-send"),
       hint: $("#btn-hint"),
       hintText: $("#hint-text"),
+      hintCredit: $("#btn-hint-credit"),
+      hintCreditCount: $("#hint-credit-count"),
       leave: $("#btn-leave"),
       feedback: $("#feedback"),
       toast: $("#toast")
@@ -54,6 +56,7 @@ export class UI {
       this.el.hintText.classList.toggle("hidden");
       this.el.hint.classList.toggle("is-active");
     });
+    this.el.hintCredit.addEventListener("click", () => this.emit("useHintCredit"));
     this.el.leave.addEventListener("click", () => this.emit("leave"));
     this.el.interact.addEventListener("click", () => this.emit("interact"));
   }
@@ -191,6 +194,18 @@ export class UI {
 
   showPartial(text) {
     this.el.micLabel.textContent = text ? "“" + text + "”" : "Listening...";
+  }
+
+  /** Show/hide the "Reveal Answer" credit button and its remaining count. */
+  setHintCredits(n) {
+    this.el.hintCredit.classList.toggle("hidden", n <= 0);
+    this.el.hintCreditCount.textContent = n;
+  }
+
+  /** A spent hint credit fills the box; the student still has to press Send. */
+  fillAnswerInput(text) {
+    this.el.input.value = text;
+    this.el.input.focus();
   }
 
   lockAnswering(on) {

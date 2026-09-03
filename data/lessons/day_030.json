@@ -1,0 +1,135 @@
+{
+  "lesson_id": "day_030",
+  "day": 30,
+  "topic": "A Job Interview",
+  "location": "workplace",
+  "difficulty": "hard",
+  "characters": [
+    {
+      "id": "manager",
+      "name": "Ms. Nair",
+      "role": "teacher"
+    }
+  ],
+  "intro": "You are being interviewed for a job. Answer the questions confidently.",
+  "vocabulary": [
+    "tell me about yourself",
+    "my strength",
+    "I have experience",
+    "I am interested in",
+    "look forward"
+  ],
+  "conversation": [
+    {
+      "speaker": "manager",
+      "text": "Please sit down. Tell me a little about yourself."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Introduce yourself in one or two sentences.",
+      "expected": [
+        "My name is Arjun and I finished school this year.",
+        "I am Arjun. I like working with people.",
+        "My name is Arjun and I am from Delhi."
+      ],
+      "keywords": [
+        [
+          "name"
+        ]
+      ],
+      "expects": "name",
+      "hint": "Try: \"My name is Arjun and I finished school this year.\"",
+      "points": 20,
+      "slot": "name"
+    },
+    {
+      "speaker": "manager",
+      "text": "Why are you interested in this job?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Explain why you want this job.",
+      "expected": [
+        "I am interested because I like helping customers.",
+        "Because I want to learn new skills.",
+        "I am interested in this work because it suits me."
+      ],
+      "keywords": [
+        [
+          "because",
+          "interested"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I am interested because I like helping customers.\"",
+      "points": 20
+    },
+    {
+      "speaker": "manager",
+      "text": "What would you say is your greatest strength?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say what you are good at.",
+      "expected": [
+        "I am good at working in a team.",
+        "My strength is that I work hard.",
+        "I am good at talking to people."
+      ],
+      "keywords": [
+        [
+          "good",
+          "strength"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I am good at working in a team.\"",
+      "points": 20,
+      "slot": "strength"
+    },
+    {
+      "speaker": "manager",
+      "text": "Do you have any experience of this kind of work?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Answer honestly about your experience.",
+      "expected": [
+        "No, but I learn quickly.",
+        "Yes, I helped in my father's shop.",
+        "I have a little experience from school."
+      ],
+      "keywords": [
+        [
+          "learn",
+          "experience",
+          "helped"
+        ]
+      ],
+      "expects": "yes_no",
+      "hint": "Try: \"No, but I learn quickly.\"",
+      "points": 20
+    },
+    {
+      "speaker": "manager",
+      "text": "Thank you. We will tell you our decision next week."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Thank her and say you look forward to hearing from her.",
+      "expected": [
+        "Thank you. I look forward to hearing from you.",
+        "Thank you for your time.",
+        "Thank you very much for this chance."
+      ],
+      "keywords": [
+        [
+          "thank"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"Thank you. I look forward to hearing from you.\"",
+      "points": 20
+    }
+  ]
+}

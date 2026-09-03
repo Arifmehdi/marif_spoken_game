@@ -19,6 +19,7 @@ import { ConversationEngine } from "../conversation/ConversationEngine.js";
 import { SpeechInput } from "../conversation/SpeechInput.js";
 import { SpeechOutput } from "../conversation/SpeechOutput.js";
 import { ProgressStore } from "../progress/ProgressStore.js";
+import { evaluateBadges, earnedIds } from "../progress/Badges.js";
 import { UI } from "../ui/UI.js";
 import { Screens } from "../ui/Screens.js";
 import { Menu, ART } from "../ui/Menu.js";
@@ -75,18 +76,25 @@ export class Game {
     this.wireEngine();
     this.wireUI();
 
-    // Start both downloads now so they finish behind the title menu, rather
-    // than mid-lesson with a placeholder standing in.
-    this.models.prefetch(["npcWoman1", "npcWoman2", "npcMan1", "npcMan2", "plant1", "bookshelf"]);
     this.sound.setEnabled(this.progress.getSetting("sound") !== false);
     this.sound.preload();
 
+    // enterLocation() and applyChosenCharacter() below already start the only
+    // two model downloads today's screen actually needs - today's NPC and the
+    // player's own character. Nothing else competes with those for the
+    // connection until this is at least kicked off, which matters most on a
+    // slow mobile link where a handful of parallel downloads queue behind
+    // each other.
     await this.loadTodaysLesson();
     this.enterLocation(this.lessonEntry.location, { silent: true });
     this.applyChosenCharacter();
     this.ui.renderHud(this.progress);
     this.setupMobile();
     this.loop();
+
+    // Everything else the player might walk into next, warmed in the
+    // background now that the first screen's own assets are already in flight.
+    this.models.prefetch(["npcWoman1", "npcWoman2", "npcMan1", "npcMan2", "plant1", "bookshelf"]);
 
     // First run goes straight to character select; afterwards, the title menu.
     if (!this.progress.data.characterId) this.openCharacterSelect({ firstRun: true });
@@ -140,7 +148,7 @@ export class Game {
 
   openMenu() {
     this.setShellMode(true);
-    this.menu.main(this.progress, this.lesson, {
+    this.menu.main(this.progress, this.lesson, this.manifest, {
       play: () => {
         this.mode = "daily";
         this.activeLesson = this.lesson;
@@ -149,11 +157,78 @@ export class Game {
         this.showLessonBrief();
       },
       free: () => this.openFreePlay(),
+      store: () => this.openStore(),
       character: () => this.openCharacterSelect({}),
       location: () => this.openLocationSelect(),
       progress: () => this.screens.progressScreen(this.progress, this.manifest),
+      badges: () => this.screens.badges(this.progress, this.manifest),
       settings: () => this.openSettings()
     });
+    this.maybeShowDailyReward();
+  }
+
+  /** Shown once per visit, on top of the menu shell, the first time it is reached. */
+  maybeShowDailyReward() {
+    if (this.dailyRewardShown) return;
+    this.dailyRewardShown = true;
+    const preview = this.progress.previewDailyReward();
+    if (!preview) return;
+    this.screens.dailyReward(preview, {
+      onClaim: () => {
+        const award = this.progress.claimDailyReward();
+        this.ui.renderHud(this.progress);
+        this.ui.toast("+" + award.coins + " coins" +
+          (award.bonusFreeze ? " and a Streak Freeze!" : "") + " - see you tomorrow!", "info", 3600);
+      }
+    });
+  }
+
+  /* ------------------------------------------------------------- store */
+
+  openStore() {
+    this.setShellMode(true);
+    this.menu.store(this.progress, this.config, {
+      onBack: () => this.openMenu(),
+      onBuy: (id) => this.buyStoreItem(id)
+    });
+  }
+
+  buyStoreItem(id) {
+    if (id === "skipLesson") {
+      const item = this.config.store.skipLesson;
+      if (!this.progress.canAfford("skipLesson")) { this.ui.toast("Not enough coins", "warn"); return; }
+      this.progress.data.coins -= item.price;
+      const lesson = this.lesson;
+      this.progress.recordLesson({
+        lessonId: lesson.lesson_id, day: lesson.day, topic: lesson.topic,
+        percent: 60, xp: 30, stars: 3, correctResponses: 0, totalResponses: 0,
+        stats: { vocabulary: null, sentence: null, relevance: null, pronunciation: null }
+      });
+      this.loadTodaysLesson().then(() => {
+        this.ui.renderHud(this.progress);
+        this.ui.toast("Skipped ahead - Day " + lesson.day + " is marked done", "info");
+        this.openStore();
+      });
+      return;
+    }
+
+    const result = this.progress.buy(id);
+    if (!result.ok) { this.ui.toast(result.error, "warn"); return; }
+    this.ui.renderHud(this.progress);
+    this.ui.toast("Purchased!", "info");
+    this.openStore();
+  }
+
+  useHintCredit() {
+    if (!this.inConversation || !this.engine.awaiting) return;
+    if (!this.progress.useHintCredit()) {
+      this.ui.toast("No hint credits left - buy more in the Store.", "warn");
+      return;
+    }
+    const turn = this.engine.lesson.conversation[this.engine.cursor];
+    this.ui.fillAnswerInput((turn.expected && turn.expected[0]) || "");
+    this.ui.setHintCredits(this.progress.hintCredits);
+    this.ui.toast("Answer filled in - press Send", "info", 2200);
   }
 
   openCharacterSelect({ firstRun }) {
@@ -381,20 +456,30 @@ export class Game {
 
   /* ------------------------------------------------------------ free play */
 
-  openFreePlay() {
+  openFreePlay(level = this.freeLevel || "easy") {
+    this.freeLevel = level;
     this.setShellMode(true);
     this.menu.locationSelect(this.progress, this.manifest, this.location.id, null, {
       free: true,
+      level,
       onBack: () => this.openMenu(),
-      onTravel: (id) => this.startFreePlay(id)
+      onLevel: (next) => this.openFreePlay(next),
+      onTravel: (id, day) => this.startFreePlay(id, day)
     });
   }
 
-  /** Pick any place and practise the conversation set there, in any order. */
-  async startFreePlay(id) {
-    const entry = this.manifest.lessons
-      .filter((l) => l.location === id)
-      .sort((a, b) => a.day - b.day)[0];
+  /**
+   * Pick a place and a level, and practise that conversation in any order.
+   *
+   * Before there was a level to choose, this always took the lowest day set in
+   * a place - which meant the medium and hard conversations there could never
+   * be reached from Free Play at all.
+   */
+  async startFreePlay(id, day) {
+    const here = this.manifest.lessons.filter((l) => l.location === id);
+    const entry = here.find((l) => l.day === day) ||
+                  here.find((l) => l.difficulty === (this.freeLevel || "easy")) ||
+                  here.sort((a, b) => a.day - b.day)[0];
 
     if (!entry) {
       this.ui.toast("There is no conversation here yet", "warn");
@@ -474,6 +559,7 @@ export class Game {
     this.ui.on("leave", () => this.leaveConversation());
     this.ui.on("mic", () => this.startListening());
     this.ui.on("answer", ({ text, mode, confidence }) => this.answer(text, mode, confidence));
+    this.ui.on("useHintCredit", () => this.useHintCredit());
 
     this.input.onAction((name) => {
       // A popup or the menu owns the keyboard while it is open.
@@ -530,6 +616,7 @@ export class Game {
       this.player.setState("idle");
       this.ui.askStudent(payload);
       this.ui.setQuest(payload.prompt, payload.index + "/" + payload.total);
+      this.ui.setHintCredits(this.progress.hintCredits);
       if (!SpeechInput.isSupported()) {
         this.ui.setMicState("disabled", SpeechInput.unsupportedReason);
       }
@@ -620,9 +707,11 @@ export class Game {
   async finishLesson(summary) {
     // Free Play awards reduced XP and never advances the daily progression.
     const practice = this.mode === "free";
+    const before = earnedIds(this.progress.badgeStats(this.manifest));
     const award = practice
       ? this.progress.recordPractice(summary)
       : this.progress.recordLesson(summary);
+    this.announceNewBadges(before);
 
     this.endConversationUi();
     this.ui.renderHud(this.progress);
@@ -636,6 +725,15 @@ export class Game {
         await this.loadTodaysLesson();
         this.openMenu();
       }
+    });
+  }
+
+  /** Toasts any badge that just became earned - after the results screen so it does not cover it. */
+  announceNewBadges(beforeIds) {
+    const after = evaluateBadges(this.progress.badgeStats(this.manifest));
+    const justEarned = after.filter((b) => b.earned && !beforeIds.includes(b.id));
+    justEarned.forEach((b, i) => {
+      setTimeout(() => this.ui.toast("🏅 Badge earned: " + b.name, "info", 4200), 600 + i * 900);
     });
   }
 

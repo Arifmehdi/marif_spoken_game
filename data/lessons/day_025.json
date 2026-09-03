@@ -1,0 +1,136 @@
+{
+  "lesson_id": "day_025",
+  "day": 25,
+  "topic": "Reporting a Lost Bag",
+  "location": "city",
+  "difficulty": "hard",
+  "characters": [
+    {
+      "id": "stranger",
+      "name": "Officer Rao",
+      "role": "police"
+    }
+  ],
+  "intro": "You have lost your bag in the city. Report it to the police officer.",
+  "vocabulary": [
+    "I have lost",
+    "it looks like",
+    "it happened",
+    "inside there was",
+    "phone number"
+  ],
+  "conversation": [
+    {
+      "speaker": "stranger",
+      "text": "You look upset. What has happened?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Explain that you have lost your bag.",
+      "expected": [
+        "I have lost my bag.",
+        "I lost my bag somewhere.",
+        "My bag is missing."
+      ],
+      "keywords": [
+        [
+          "lost",
+          "missing"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"I have lost my bag.\"",
+      "points": 20
+    },
+    {
+      "speaker": "stranger",
+      "text": "I am sorry to hear that. What does it look like?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Describe the bag.",
+      "expected": [
+        "It is a small blue bag.",
+        "It is a black school bag.",
+        "It is brown with a long strap."
+      ],
+      "keywords": [
+        [
+          "bag"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"It is a small blue bag.\"",
+      "points": 20,
+      "slot": "description"
+    },
+    {
+      "speaker": "stranger",
+      "text": "Where do you think you lost it?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say where you think you lost it, using the past tense.",
+      "expected": [
+        "I think I left it on the bus.",
+        "I lost it near the market.",
+        "I left it at the shop."
+      ],
+      "keywords": [
+        [
+          "left",
+          "lost"
+        ]
+      ],
+      "expects": "place",
+      "hint": "Try: \"I think I left it on the bus.\"",
+      "points": 20,
+      "slot": "place"
+    },
+    {
+      "speaker": "stranger",
+      "text": "What was inside the bag?"
+    },
+    {
+      "speaker": "student",
+      "prompt": "Say what was inside it.",
+      "expected": [
+        "My books and my water bottle were inside.",
+        "There were some books inside.",
+        "Inside there was my lunch box."
+      ],
+      "keywords": [
+        [
+          "inside",
+          "books",
+          "were"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"My books and my water bottle were inside.\"",
+      "points": 20,
+      "slot": "contents"
+    },
+    {
+      "speaker": "stranger",
+      "text": "I have written it down. We will call you if we find it."
+    },
+    {
+      "speaker": "student",
+      "prompt": "Thank the officer and give your phone number.",
+      "expected": [
+        "Thank you. My number is nine eight seven six.",
+        "Thank you, sir. Here is my phone number.",
+        "Thank you very much for your help."
+      ],
+      "keywords": [
+        [
+          "thank"
+        ]
+      ],
+      "expects": "state",
+      "hint": "Try: \"Thank you, sir. Here is my phone number.\"",
+      "points": 20
+    }
+  ]
+}
