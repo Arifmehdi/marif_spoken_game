@@ -157,6 +157,11 @@ export class SpeechOutput {
       try { this.synth.cancel(); } catch (err) { /* nothing playing */ }
     }
     this.current = null;
+    // Whoever cancelled is not going to call resume() afterwards - restart,
+    // quit and the rotate-lock screen all cancel without ever resuming. Left
+    // set, a stale paused flag makes the NEXT speak() hold finish() open in
+    // its 250ms retry loop forever, since nothing is left to unpause it.
+    this.paused = false;
   }
 
   /**

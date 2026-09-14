@@ -66,7 +66,14 @@ export class ConversationEngine {
   /* ---------------------------------------------------------------- flow */
 
   async start(lesson) {
-    this.reset();
+    // Talking to the NPC again after the answer box was closed mid-question
+    // resumes on the same turn instead of losing everything answered so far -
+    // the cursor and results only get wiped below when there is nothing to
+    // resume (a different lesson, or none in progress).
+    const resuming = this.lesson && this.lesson.lesson_id === lesson.lesson_id &&
+      this.cursor >= 0 && this.cursor < lesson.conversation.length;
+
+    if (!resuming) this.reset();
     this.lesson = lesson;
     this.active = true;
     this.emit("started", {
@@ -76,6 +83,20 @@ export class ConversationEngine {
       intro: lesson.intro,
       total: this.studentTurnCount
     });
+
+    if (resuming) {
+      const turn = this.lesson.conversation[this.cursor];
+      this.attempts = 0;
+      this.awaiting = true;
+      this.emit("studentPrompt", {
+        prompt: turn.prompt || "Your turn - speak or type your answer.",
+        hint: turn.hint,
+        index: this.studentTurnIndex + 1,
+        total: this.studentTurnCount
+      });
+      return;
+    }
+
     await this.advance();
   }
 
@@ -103,8 +124,9 @@ export class ConversationEngine {
     const character = this.characterFor(turn.speaker);
     const gender = npcGender(character);
     this.emit("npcLine", { text: turn.text, role: character.role, name: character.name, id: character.id, gender });
-    await this.speech.speak(turn.text, character.role, gender);
-    if (!this.active) return;
+    // Not awaited: the next turn (almost always the student's) should appear
+    // right away rather than sit behind however long the voice line takes.
+    this.speech.speak(turn.text, character.role, gender);
     await this.advance();
   }
 
@@ -171,6 +193,16 @@ export class ConversationEngine {
     this.speech.cancel();
     this.emit("abandoned", { lessonId: this.lesson && this.lesson.lesson_id });
     this.reset();
+  }
+
+  /**
+   * Student closed the answer box without abandoning - the cursor and every
+   * result so far are deliberately left alone, so calling start() with the
+   * same lesson later resumes this same question instead of restarting.
+   */
+  suspend() {
+    this.active = false;
+    this.speech.cancel();
   }
 
   /* -------------------------------------------------------------- finish */

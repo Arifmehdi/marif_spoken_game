@@ -69,7 +69,7 @@ function adminCredential() {
   return { plain: crypto.randomBytes(6).toString("hex"), from: "generated for this run" };
 }
 
-const ADMIN = adminCredential();
+let ADMIN = adminCredential();
 const sessions = new Set();
 
 /** Constant-time compare, so response timing cannot be used to guess. */
@@ -129,6 +129,76 @@ const server = http.createServer((req, res) => {
       sessions.add(token);
       console.log("  admin signed in");
       res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ token }));
+    });
+    return;
+  }
+
+  /** Change the admin password from the editor itself; requires the current one. */
+  if (req.method === "POST" && (url === "/__admin/change-password" || url.endsWith("/admin/api/change-password.php"))) {
+    if (!sessions.has(String(req.headers["x-admin-token"] || ""))) {
+      res.writeHead(401, { "Content-Type": "application/json" }).end('{"error":"Sign in first"}');
+      return;
+    }
+    readBody(req).then((raw) => {
+      let data = {};
+      try { data = JSON.parse(raw.toString("utf8")); } catch { /* empty */ }
+      const current = String(data.currentPassword || "");
+      const next = String(data.newPassword || "");
+
+      if (process.env.ADMIN_PASSWORD) {
+        res.writeHead(400, { "Content-Type": "application/json" }).end(JSON.stringify({
+          error: "The password is set by the ADMIN_PASSWORD environment variable on the server, not here. Change it there instead."
+        }));
+        return;
+      }
+      if (!samePassword(current)) {
+        console.log("  change-password refused: wrong current password");
+        res.writeHead(401, { "Content-Type": "application/json" }).end('{"error":"Current password is wrong"}');
+        return;
+      }
+      if (next.length < 8) {
+        res.writeHead(400, { "Content-Type": "application/json" }).end('{"error":"New password must be at least 8 characters"}');
+        return;
+      }
+
+      const salt = crypto.randomBytes(16).toString("hex");
+      fs.writeFileSync(CONFIG_FILE, JSON.stringify({
+        _comment: "Salted PBKDF2-SHA256 hash of the admin password. Never commit this file.",
+        iterations: PBKDF2_ITERATIONS,
+        salt,
+        hash: hashWith(next, salt, PBKDF2_ITERATIONS)
+      }, null, 2) + "\n");
+      ADMIN = adminCredential();
+      console.log("  admin password changed");
+      res.writeHead(200, { "Content-Type": "application/json" }).end('{"ok":true}');
+    });
+    return;
+  }
+
+  /** Save game-wide settings (currently just lesson pacing) from the admin panel. */
+  if (req.method === "POST" && (url === "/__admin/save-settings" || url.endsWith("/admin/api/save-settings.php"))) {
+    if (!sessions.has(String(req.headers["x-admin-token"] || ""))) {
+      res.writeHead(401, { "Content-Type": "application/json" }).end('{"error":"Sign in first"}');
+      return;
+    }
+    readBody(req).then((raw) => {
+      let data = {};
+      try { data = JSON.parse(raw.toString("utf8")); } catch { /* empty */ }
+      const pacing = String(data.pacing || "");
+      if (pacing !== "free" && pacing !== "daily") {
+        res.writeHead(400, { "Content-Type": "application/json" }).end('{"error":"pacing must be \\"free\\" or \\"daily\\""}');
+        return;
+      }
+      const settingsFile = path.join(ROOT, "data/config/settings.json");
+      fs.writeFileSync(settingsFile, JSON.stringify({
+        _comment: "Game-wide settings, changed from the Settings button in the admin panel. " +
+          "pacing: 'free' lets a student play straight through to the next lesson the same day; " +
+          "'daily' unlocks one new lesson per calendar day (finishing today's lesson still shows " +
+          "the result, but the next one waits until tomorrow).",
+        pacing
+      }, null, 2) + "\n");
+      console.log("  settings saved: pacing=" + pacing);
+      res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify({ ok: true, pacing }));
     });
     return;
   }

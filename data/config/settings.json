@@ -1,0 +1,4 @@
+{
+  "_comment": "Game-wide settings, changed from the Settings button in the admin panel. pacing: 'free' lets a student play straight through to the next lesson the same day; 'daily' unlocks one new lesson per calendar day (finishing today's lesson still shows the result, but the next one waits until tomorrow).",
+  "pacing": "free"
+}

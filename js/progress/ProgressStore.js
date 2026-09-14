@@ -86,6 +86,12 @@ export class ProgressStore {
     return this.data.lessons[lessonId] || null;
   }
 
+  /** Used to gate "daily" pacing: has a real (non-practice) lesson already been finished today? */
+  completedRealLessonToday() {
+    const today = ProgressStore.todayKey();
+    return this.data.history.some((e) => !e.practice && e.date === today);
+  }
+
   static todayKey(d = new Date()) {
     return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
   }
@@ -335,9 +341,11 @@ export class ProgressStore {
 
   /* ---------------------------------------------------------- statistics */
 
-  /** Powers the Progress screen (specification section 10). */
+  /** Powers the Progress screen (specification section 10). Free Play attempts are
+   * excluded - they are tagged `practice: true` in history precisely so the
+   * report reflects real lesson performance, not practice replays. */
   overview() {
-    const h = this.data.history;
+    const h = this.data.history.filter((e) => !e.practice);
     const scores = h.map((e) => e.percent);
     const avg = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
     const best = scores.length ? Math.max(...scores) : 0;

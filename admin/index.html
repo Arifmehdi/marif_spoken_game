@@ -63,6 +63,7 @@
   button { border:0; border-radius:11px; padding:12px 22px; font-size:14px; font-weight:800;
            font-family:inherit; cursor:pointer; background:linear-gradient(160deg,#4ade80,#16a34a); color:#fff; }
   button.ghost { background:#334155; }
+  a.ghost { background:#334155; color:#fff; font-weight:800; font-size:14px; font-family:inherit; cursor:pointer; }
   button.danger { background:linear-gradient(160deg,#fb7185,#e11d48); }
   button:disabled { background:#334155; cursor:not-allowed; opacity:.55; }
   .bar { display:flex; gap:10px; margin:14px 0 0; flex-wrap:wrap; }
@@ -78,6 +79,28 @@
   pre { padding:12px; overflow:auto; }
   .pill { display:inline-block; background:#16233d; color:var(--dim); border-radius:999px;
           padding:3px 11px; font-size:11.5px; font-weight:800; letter-spacing:.04em; }
+  .hidden { display:none !important; }
+
+  /* ---- change password ---- */
+  .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.6); display:grid;
+                     place-items:center; padding:20px; z-index:50; }
+  .modal-card { width:min(360px,100%); background:var(--panel); border:2px solid var(--line);
+                border-radius:18px; padding:24px; }
+  .modal-card h2 { font-size:17px; margin:0 0 4px; }
+  .modal-card p.hint { color:var(--dim); font-size:13px; margin:0 0 18px; }
+  .modal-card label { margin-top:12px; }
+  .modal-card label:first-of-type { margin-top:0; }
+  #pw-err { color:var(--rose); font-size:13px; font-weight:700; min-height:19px; margin:10px 0 0; }
+  #pw-ok { color:var(--green); font-size:13px; font-weight:700; min-height:19px; margin:10px 0 0; }
+
+  /* ---- password show/hide ---- */
+  .pw-field { position:relative; }
+  .pw-field input { padding-right:44px; }
+  .pw-toggle { position:absolute; right:4px; top:4px; width:34px; height:34px;
+               display:grid; place-items:center; background:transparent; border:0;
+               border-radius:8px; padding:0; color:var(--dim); cursor:pointer; }
+  .pw-toggle:hover { background:rgba(255,255,255,.08); color:var(--ink); }
+  .pw-toggle svg { width:18px; height:18px; }
 </style>
 </head>
 <body>
@@ -87,7 +110,12 @@
     <h1>Lesson admin</h1>
     <p>Sign in to add or edit the conversations the game teaches.</p>
     <label for="pw">Password</label>
-    <input type="password" id="pw" autocomplete="current-password" required />
+    <div class="pw-field">
+      <input type="password" id="pw" autocomplete="current-password" required />
+      <button type="button" class="pw-toggle" data-target="pw" aria-label="Show password">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+    </div>
     <p id="gate-err"></p>
     <div class="bar"><button type="submit" id="gate-go">Sign in</button></div>
   </form>
@@ -99,10 +127,64 @@
     <span class="pill" id="count">—</span>
     <div class="spacer"></div>
     <a class="ghost" id="guide-link" href="guide.html"
-       style="text-decoration:none; display:inline-flex; align-items:center; padding:0 18px; border-radius:11px;">Guide</a>
+       style="text-decoration:none; display:inline-flex; align-items:center; padding:12px 22px; border-radius:11px;">Guide</a>
+    <button class="ghost" id="open-settings">Settings</button>
+    <button class="ghost" id="change-pw">Change password</button>
     <button class="danger" id="reset-all">Reset all to standard</button>
     <button class="ghost" id="signout">Sign out</button>
   </header>
+
+  <div id="pw-modal" class="modal-backdrop hidden">
+    <form class="modal-card" id="pw-form">
+      <h2>Change password</h2>
+      <p class="hint">Enter your current password, then the new one.</p>
+      <label for="pw-current">Current password</label>
+      <div class="pw-field">
+        <input type="password" id="pw-current" autocomplete="current-password" required />
+        <button type="button" class="pw-toggle" data-target="pw-current" aria-label="Show password">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+      <label for="pw-new">New password</label>
+      <div class="pw-field">
+        <input type="password" id="pw-new" autocomplete="new-password" required minlength="8" />
+        <button type="button" class="pw-toggle" data-target="pw-new" aria-label="Show password">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+      <label for="pw-confirm">Confirm new password</label>
+      <div class="pw-field">
+        <input type="password" id="pw-confirm" autocomplete="new-password" required minlength="8" />
+        <button type="button" class="pw-toggle" data-target="pw-confirm" aria-label="Show password">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+      <p id="pw-err"></p>
+      <p id="pw-ok"></p>
+      <div class="bar">
+        <button type="submit" id="pw-save">Save new password</button>
+        <button type="button" class="ghost" id="pw-cancel">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="settings-modal" class="modal-backdrop hidden">
+    <form class="modal-card" id="settings-form">
+      <h2>Lesson pacing</h2>
+      <p class="hint">How fast can a student move through the 30 daily lessons?</p>
+      <label for="pacing">Pacing</label>
+      <select id="pacing">
+        <option value="free">Free — play straight through, same day</option>
+        <option value="daily">Daily — one new lesson unlocks per day</option>
+      </select>
+      <p id="settings-err"></p>
+      <p id="settings-ok"></p>
+      <div class="bar">
+        <button type="submit" id="settings-save">Save</button>
+        <button type="button" class="ghost" id="settings-cancel">Cancel</button>
+      </div>
+    </form>
+  </div>
 
   <div class="cols">
     <div>
@@ -147,6 +229,36 @@ let editingDay = null;    // which one the editor is showing
 
 const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
 
+/* -------------------------------------------------------- show/hide password */
+
+const EYE_ICON =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+  '<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+const EYE_OFF_ICON =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+  '<path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a20.3 20.3 0 0 1 5.06-5.94M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 7 11 7a20.29 20.29 0 0 1-3.22 4.31M14.12 14.12a3 3 0 1 1-4.24-4.24"/>' +
+  '<path d="M1 1l22 22"/></svg>';
+
+/** A password field stays hidden by default; each reveal is undone on the next open. */
+function resetPasswordToggle(inputId) {
+  const btn = document.querySelector('.pw-toggle[data-target="' + inputId + '"]');
+  if (!btn) return;
+  $(inputId).type = "password";
+  btn.innerHTML = EYE_ICON;
+  btn.setAttribute("aria-label", "Show password");
+}
+
+document.querySelectorAll(".pw-toggle").forEach((btn) => {
+  btn.innerHTML = EYE_ICON;
+  btn.addEventListener("click", () => {
+    const input = $(btn.dataset.target);
+    const reveal = input.type === "password";
+    input.type = reveal ? "text" : "password";
+    btn.innerHTML = reveal ? EYE_OFF_ICON : EYE_ICON;
+    btn.setAttribute("aria-label", reveal ? "Hide password" : "Show password");
+  });
+});
+
 /* --------------------------------------------------------------- sign in */
 
 async function openApp() {
@@ -174,6 +286,7 @@ $("gate-form").addEventListener("submit", async (e) => {
     token = (await res.json()).token;
     sessionStorage.setItem(KEY, token);
     $("pw").value = "";
+    resetPasswordToggle("pw");
     openApp();
   } catch {
     $("gate-err").textContent = "No admin back end here. Open this page through " +
@@ -187,6 +300,108 @@ $("signout").addEventListener("click", () => {
   sessionStorage.removeItem(KEY);
   token = "";
   location.reload();
+});
+
+/* -------------------------------------------------------- change password */
+
+function openPwModal() {
+  $("pw-form").reset();
+  ["pw-current", "pw-new", "pw-confirm"].forEach(resetPasswordToggle);
+  $("pw-err").textContent = "";
+  $("pw-ok").textContent = "";
+  $("pw-modal").classList.remove("hidden");
+  $("pw-current").focus();
+}
+function closePwModal() { $("pw-modal").classList.add("hidden"); }
+
+$("change-pw").addEventListener("click", openPwModal);
+$("pw-cancel").addEventListener("click", closePwModal);
+$("pw-modal").addEventListener("click", (e) => { if (e.target === $("pw-modal")) closePwModal(); });
+
+$("pw-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  $("pw-err").textContent = "";
+  $("pw-ok").textContent = "";
+
+  const current = $("pw-current").value;
+  const next = $("pw-new").value;
+  const confirmPw = $("pw-confirm").value;
+
+  if (next.length < 8) { $("pw-err").textContent = "New password must be at least 8 characters."; return; }
+  if (next !== confirmPw) { $("pw-err").textContent = "New password and confirmation do not match."; return; }
+
+  $("pw-save").disabled = true;
+  try {
+    const res = await fetch("api/change-password.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-admin-token": token },
+      credentials: "same-origin",
+      body: JSON.stringify({ currentPassword: current, newPassword: next })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 401 && data.error === "Sign in first") {
+      sessionStorage.removeItem(KEY);
+      $("pw-err").textContent = "Your session ended. Reload and sign in again.";
+      return;
+    }
+    if (!res.ok) { $("pw-err").textContent = data.error || "Could not change the password."; return; }
+
+    $("pw-ok").textContent = "Password changed.";
+    setTimeout(closePwModal, 1200);
+  } catch {
+    $("pw-err").textContent = "Could not reach the admin back end.";
+  } finally {
+    $("pw-save").disabled = false;
+  }
+});
+
+/* -------------------------------------------------------------------- settings */
+
+async function openSettingsModal() {
+  $("settings-err").textContent = "";
+  $("settings-ok").textContent = "";
+  $("settings-modal").classList.remove("hidden");
+  try {
+    const settings = await (await fetch("../data/config/settings.json?t=" + Date.now())).json();
+    $("pacing").value = settings.pacing === "daily" ? "daily" : "free";
+  } catch {
+    $("settings-err").textContent = "Could not read the current setting - defaulting to Free.";
+    $("pacing").value = "free";
+  }
+}
+function closeSettingsModal() { $("settings-modal").classList.add("hidden"); }
+
+$("open-settings").addEventListener("click", openSettingsModal);
+$("settings-cancel").addEventListener("click", closeSettingsModal);
+$("settings-modal").addEventListener("click", (e) => { if (e.target === $("settings-modal")) closeSettingsModal(); });
+
+$("settings-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  $("settings-err").textContent = "";
+  $("settings-ok").textContent = "";
+  $("settings-save").disabled = true;
+  try {
+    const res = await fetch("api/save-settings.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-admin-token": token },
+      credentials: "same-origin",
+      body: JSON.stringify({ pacing: $("pacing").value })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 401 && data.error === "Sign in first") {
+      sessionStorage.removeItem(KEY);
+      $("settings-err").textContent = "Your session ended. Reload and sign in again.";
+      return;
+    }
+    if (!res.ok) { $("settings-err").textContent = data.error || "Could not save the setting."; return; }
+
+    $("settings-ok").textContent = "Saved. Players get this the next time they load the game.";
+    setTimeout(closeSettingsModal, 1400);
+  } catch {
+    $("settings-err").textContent = "Could not reach the admin back end.";
+  } finally {
+    $("settings-save").disabled = false;
+  }
 });
 
 /* -------------------------------------------------------------- the form */

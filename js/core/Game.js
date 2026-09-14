@@ -60,6 +60,14 @@ export class Game {
     if (!cfgRes.ok) throw new Error("Could not load data/config/scoring.json");
     this.config = await cfgRes.json();
 
+    // Admin-controlled, so it is fetched separately from the tuning file above -
+    // falls back to "free" (today's actual behaviour) if the file is missing.
+    this.settings = { pacing: "free" };
+    try {
+      const settingsRes = await fetch("data/config/settings.json", { cache: "no-cache" });
+      if (settingsRes.ok) Object.assign(this.settings, await settingsRes.json());
+    } catch { /* keep the default */ }
+
     this.progress = new ProgressStore(this.config);
     this.evaluator = new Evaluator(this.config);
     this.speechOut = new SpeechOutput({
@@ -648,6 +656,19 @@ export class Game {
       this.ui.toast("Today's lesson is at the " + (meta ? meta.label : this.activeLesson.location) + ". Open the map to travel.", "info", 4200);
       return;
     }
+
+    // "daily" pacing: only one NEW lesson unlocks per calendar day. A lesson
+    // already in progress today (mid-conversation, suspended by closing the
+    // answer box) still has no completedAt yet, so it is never blocked here -
+    // only moving on to a lesson that has not been started counts.
+    if (this.mode === "daily" && this.settings.pacing === "daily" &&
+        !this.progress.lessonRecord(this.activeLesson.lesson_id) &&
+        this.progress.completedRealLessonToday()) {
+      this.ui.toast("You have finished today's lesson. Come back tomorrow for Day " +
+        this.activeLesson.day + "!", "info", 4200);
+      return;
+    }
+
     this.startConversation();
   }
 
@@ -684,10 +705,10 @@ export class Game {
 
   leaveConversation() {
     if (!this.inConversation) return;
-    this.engine.abandon();
+    this.engine.suspend();
     this.endConversationUi();
-    this.ui.toast("Conversation left. Nothing was saved.", "warn");
-    this.ui.setQuest("Talk to " + this.npc.name + " to start today's lesson.", "0/1");
+    this.ui.toast("Left mid-conversation - talk to " + this.npc.name + " again to pick up where you left off.", "info");
+    this.ui.setQuest("Talk to " + this.npc.name + " to continue today's lesson.", "0/1");
     if (this.npc) this.npc.setMarker("quest");
   }
 
